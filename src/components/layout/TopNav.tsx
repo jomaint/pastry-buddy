@@ -41,34 +41,11 @@ export function TopNav() {
 			</span>
 
 			{/* Nav items */}
-			<div className="flex-1 flex items-center justify-center gap-0.5 px-1.5">
+			<div className="flex-1 flex items-center justify-center gap-0.5 px-2">
 				{items.map((item) => {
 					const Icon = icons[item.icon];
 					const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 					const isLog = item.icon === "PlusCircle";
-
-					if (isLog) {
-						return (
-							<Link
-								key={item.href}
-								href={item.href}
-								aria-label={item.label}
-								className={clsx(
-									"relative flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] rounded-full px-3.5 mx-0.5",
-									"bg-brioche text-flour",
-									"shadow-[0_1px_4px_rgba(200,135,95,0.3),0_2px_8px_rgba(200,135,95,0.15)]",
-									"transition-all duration-150",
-									"hover:shadow-[0_1px_4px_rgba(200,135,95,0.4),0_4px_12px_rgba(200,135,95,0.25)]",
-									"hover:scale-[1.03]",
-									"active:scale-[0.97]",
-									"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche",
-								)}
-							>
-								<Icon size={18} strokeWidth={2.25} />
-								<span className="hidden md:inline text-[13px] font-medium">{item.label}</span>
-							</Link>
-						);
-					}
 
 					return (
 						<Link
@@ -80,16 +57,17 @@ export function TopNav() {
 								"relative flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] rounded-full px-3 md:px-3.5",
 								"transition-all duration-150",
 								"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche",
-								isActive
-									? "bg-brioche/10 text-brioche"
-									: "text-sesame hover:text-ganache hover:bg-parchment/50",
+								isLog && !isActive && "text-brioche hover:bg-brioche/10",
+								isLog && isActive && "bg-brioche text-flour",
+								!isLog && isActive && "bg-brioche/10 text-brioche",
+								!isLog && !isActive && "text-sesame hover:text-ganache hover:bg-parchment/50",
 							)}
 						>
-							<Icon size={18} strokeWidth={isActive ? 2.25 : 1.75} />
+							<Icon size={18} strokeWidth={isActive || isLog ? 2.25 : 1.75} />
 							<span
 								className={clsx(
 									"hidden md:inline text-[13px]",
-									isActive ? "font-medium" : "font-normal",
+									isActive || isLog ? "font-medium" : "font-normal",
 								)}
 							>
 								{item.label}
@@ -97,21 +75,6 @@ export function TopNav() {
 						</Link>
 					);
 				})}
-			</div>
-
-			{/* Avatar — desktop only */}
-			<div className="hidden md:flex items-center pr-3 pl-1">
-				<div
-					className={clsx(
-						"w-8 h-8 rounded-full",
-						"bg-parchment",
-						"flex items-center justify-center",
-						"text-sesame",
-						"border border-parchment/80",
-					)}
-				>
-					<User size={15} strokeWidth={1.75} />
-				</div>
 			</div>
 		</motion.nav>
 	);
