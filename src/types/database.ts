@@ -15,6 +15,7 @@ export interface Profile {
 export interface Bakery {
 	id: string;
 	name: string;
+	slug: string;
 	address: string | null;
 	city: string | null;
 	country: string | null;
@@ -29,8 +30,10 @@ export interface Bakery {
 export interface Pastry {
 	id: string;
 	name: string;
+	slug: string;
 	category: string;
 	bakery_id: string;
+	description: string | null;
 	photo_url: string | null;
 	avg_rating: number | null;
 	total_checkins: number;
