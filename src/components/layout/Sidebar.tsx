@@ -45,7 +45,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 			</div>
 
 			{/* Nav items */}
-			<nav className="flex-1 flex flex-col gap-1.5 px-3 mt-3">
+			<nav aria-label="Main navigation" className="flex-1 flex flex-col gap-1.5 px-3 mt-3">
 				{items.map((item) => {
 					const Icon = icons[item.icon];
 					const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -54,6 +54,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 						<Link
 							key={item.href}
 							href={item.href}
+							aria-label={item.label}
+							aria-current={isActive ? "page" : undefined}
 							className={clsx(
 								"flex items-center gap-3 h-10 rounded-[14px] transition-colors duration-150",
 								"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche",
@@ -73,6 +75,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 			{/* Collapse toggle */}
 			<button
 				type="button"
+				aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 				onClick={onToggleCollapse}
 				className={clsx(
 					"flex items-center justify-center h-12 mx-3 mb-4 rounded-[14px] text-ganache transition-colors duration-150",

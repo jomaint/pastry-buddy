@@ -2,21 +2,21 @@
 
 @theme {
 	/* Colors */
-	--color-creme: #FBF7F2;
-	--color-brioche: #C8875F;
-	--color-espresso: #2C1810;
-	--color-ganache: #4A2C2A;
-	--color-parchment: #F2EAE0;
-	--color-flour: #FFFFFF;
-	--color-sesame: #A89585;
-	--color-raspberry: #C4506E;
-	--color-pistachio: #7B9971;
-	--color-caramel: #D4A053;
-	--color-blueberry: #6B7FA6;
+	--color-creme: #fbf7f2;
+	--color-brioche: #c8875f;
+	--color-espresso: #2c1810;
+	--color-ganache: #4a2c2a;
+	--color-parchment: #f2eae0;
+	--color-flour: #ffffff;
+	--color-sesame: #a89585;
+	--color-raspberry: #c4506e;
+	--color-pistachio: #7b9971;
+	--color-caramel: #d4a053;
+	--color-blueberry: #6b7fa6;
 
 	/* Dark mode */
-	--color-dark-bg: #1A1210;
-	--color-dark-text: #F2EAE0;
+	--color-dark-bg: #1a1210;
+	--color-dark-text: #f2eae0;
 
 	/* Fonts — Next.js injects --font-display and --font-body via class on <html> */
 	--font-display: "DM Serif Display", serif;

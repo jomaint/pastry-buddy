@@ -20,14 +20,7 @@ export const XP_SOURCES = {
 	WEEKLY_STREAK: 25,
 } as const;
 
-export const TASTE_AXES = [
-	"Sweet",
-	"Buttery",
-	"Fruity",
-	"Chocolatey",
-	"Nutty",
-	"Savory",
-] as const;
+export const TASTE_AXES = ["Sweet", "Buttery", "Fruity", "Chocolatey", "Nutty", "Savory"] as const;
 
 export const NAV_ITEMS = [
 	{ label: "Feed", href: "/", icon: "Home" },

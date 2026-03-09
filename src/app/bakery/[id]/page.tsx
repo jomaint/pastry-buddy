@@ -1,5 +1,7 @@
-import { getBakery, getPastriesByBakery } from "@/lib/mock-data";
-import { ExternalLink, MapPin, Star, Store } from "lucide-react";
+import { BakeryMap } from "@/components/ui/Map";
+import { createClient } from "@/lib/supabase/server";
+import type { Bakery, Pastry } from "@/types/database";
+import { Croissant, ExternalLink, MapPin, Star, Store } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -9,11 +11,28 @@ export default async function BakeryDetailPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const bakery = getBakery(id);
+	const supabase = await createClient();
 
+	const { data: bakery, error: bErr } = await supabase
+		.from("bakeries")
+		.select("*")
+		.eq("id", id)
+		.single();
+
+	if (bErr) {
+		if (bErr.code === "PGRST116") return notFound(); // row not found
+		throw new Error(`Failed to load bakery: ${bErr.message}`);
+	}
 	if (!bakery) return notFound();
 
-	const pastries = getPastriesByBakery(bakery.id);
+	const { data: pastries } = await supabase
+		.from("pastries")
+		.select("*")
+		.eq("bakery_id", id)
+		.order("total_checkins", { ascending: false });
+
+	const typedBakery = bakery as Bakery;
+	const typedPastries = (pastries ?? []) as Pastry[];
 
 	return (
 		<div className="mx-auto max-w-2xl">
@@ -28,11 +47,11 @@ export default async function BakeryDetailPage({
 			<div className="flex flex-col gap-6 px-4 pb-8 pt-6">
 				{/* Name & address */}
 				<div>
-					<h1 className="font-display text-2xl text-espresso">{bakery.name}</h1>
+					<h1 className="font-display text-2xl text-espresso">{typedBakery.name}</h1>
 					<div className="mt-1.5 flex items-center gap-1.5 text-sm text-sesame">
 						<MapPin size={14} />
 						<span>
-							{bakery.address}, {bakery.city}
+							{typedBakery.address}, {typedBakery.city}
 						</span>
 					</div>
 				</div>
@@ -40,7 +59,7 @@ export default async function BakeryDetailPage({
 				{/* Quick actions */}
 				<div className="flex gap-3">
 					<a
-						href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${bakery.name} ${bakery.address} ${bakery.city}`)}`}
+						href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${typedBakery.name} ${typedBakery.address} ${typedBakery.city}`)}`}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
@@ -54,17 +73,19 @@ export default async function BakeryDetailPage({
 				<section className="flex flex-col gap-3">
 					<h2 className="font-display text-lg text-espresso">
 						Pastries logged here
-						<span className="ml-2 text-sm font-normal text-sesame">{pastries.length}</span>
+						<span className="ml-2 text-sm font-normal text-sesame">{typedPastries.length}</span>
 					</h2>
-					{pastries.length > 0 ? (
+					{typedPastries.length > 0 ? (
 						<div className="grid grid-cols-2 gap-3">
-							{pastries.map((pastry) => (
+							{typedPastries.map((pastry) => (
 								<Link
 									key={pastry.id}
 									href={`/pastry/${pastry.id}`}
 									className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 								>
-									<div className="aspect-square w-full rounded-[12px] bg-parchment" />
+									<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
+										<Croissant size={28} className="text-brioche/30" />
+									</div>
 									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 									<p className="text-xs text-sesame">{pastry.category}</p>
 									{pastry.avg_rating && (
@@ -84,15 +105,23 @@ export default async function BakeryDetailPage({
 					)}
 				</section>
 
-				{/* Map placeholder */}
+				{/* Map */}
 				<section className="flex flex-col gap-3">
 					<h2 className="font-display text-lg text-espresso">Location</h2>
-					<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">
-						<div className="flex flex-col items-center gap-2">
-							<MapPin size={24} className="text-sesame" />
-							<p className="text-sm text-sesame">Map coming soon</p>
+					{typedBakery.latitude && typedBakery.longitude ? (
+						<BakeryMap
+							lat={typedBakery.latitude}
+							lng={typedBakery.longitude}
+							name={typedBakery.name}
+						/>
+					) : (
+						<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">
+							<div className="flex flex-col items-center gap-2">
+								<MapPin size={24} className="text-sesame" />
+								<p className="text-sm text-sesame">Location not available</p>
+							</div>
 						</div>
-					</div>
+					)}
 				</section>
 			</div>
 		</div>

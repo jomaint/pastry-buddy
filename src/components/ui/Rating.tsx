@@ -68,11 +68,7 @@ function Rating({
 					>
 						<Star
 							size={iconSize}
-							className={clsx(
-								filled
-									? "fill-caramel text-caramel"
-									: "fill-none text-sesame",
-							)}
+							className={clsx(filled ? "fill-caramel text-caramel" : "fill-none text-sesame")}
 						/>
 					</button>
 				);

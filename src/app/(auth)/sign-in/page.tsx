@@ -1,8 +1,36 @@
 "use client";
 
+import { useSignIn } from "@/api/auth";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+const signInSchema = z.object({
+	email: z.string().email("Please enter a valid email"),
+	password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type SignInForm = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
+	const signIn = useSignIn();
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<SignInForm>({
+		resolver: zodResolver(signInSchema),
+	});
+
+	const onSubmit = (data: SignInForm) => {
+		signIn.mutate(data);
+	};
+
 	return (
 		<div className="w-full px-4">
 			<div className="mx-auto w-full max-w-sm rounded-[16px] bg-flour p-8 shadow-sm">
@@ -12,37 +40,39 @@ export default function SignInPage() {
 						<p className="mt-2 text-sm text-sesame">Sign in to continue your pastry journey</p>
 					</div>
 
-					<form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
-						<div className="flex flex-col gap-1.5">
-							<label htmlFor="email" className="text-sm font-medium text-espresso">
-								Email
-							</label>
-							<input
-								id="email"
-								type="email"
-								placeholder="you@example.com"
-								className="h-11 w-full rounded-[12px] border border-parchment bg-flour px-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/30"
-							/>
-						</div>
+					<form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+						<Input
+							label="Email"
+							type="email"
+							placeholder="you@example.com"
+							error={errors.email?.message}
+							{...register("email")}
+						/>
 
-						<div className="flex flex-col gap-1.5">
-							<label htmlFor="password" className="text-sm font-medium text-espresso">
-								Password
-							</label>
-							<input
-								id="password"
-								type="password"
-								placeholder="••••••••"
-								className="h-11 w-full rounded-[12px] border border-parchment bg-flour px-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/30"
-							/>
-						</div>
+						<Input
+							label="Password"
+							type="password"
+							placeholder="••••••••"
+							error={errors.password?.message}
+							{...register("password")}
+						/>
 
-						<button
-							type="submit"
-							className="mt-2 h-11 w-full rounded-[14px] bg-brioche text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
-						>
-							Sign In
-						</button>
+						{signIn.error && (
+							<p className="text-xs text-raspberry">
+								{signIn.error instanceof Error ? signIn.error.message : "Invalid email or password"}
+							</p>
+						)}
+
+						<Button type="submit" size="lg" disabled={signIn.isPending} className="mt-2 w-full">
+							{signIn.isPending ? (
+								<>
+									<Loader2 size={16} className="animate-spin" />
+									Signing in…
+								</>
+							) : (
+								"Sign In"
+							)}
+						</Button>
 					</form>
 
 					<p className="text-center text-sm text-sesame">

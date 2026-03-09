@@ -16,6 +16,7 @@ export function Header({ showBack, title }: HeaderProps) {
 			{showBack && (
 				<button
 					type="button"
+					aria-label="Go back"
 					onClick={() => router.back()}
 					className="flex items-center justify-center w-8 h-8 -ml-1 rounded-[14px] text-espresso transition-colors duration-150 hover:bg-parchment focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche"
 				>

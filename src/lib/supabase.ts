@@ -1,0 +1,127 @@
+/**
+ * Supabase client utilities.
+ *
+ * Re-exports the browser and server clients from their dedicated modules
+ * and provides a convenience singleton for client components.
+ */
+
+export { createClient as createBrowserClient } from "./supabase/client";
+export { createClient as createServerClient } from "./supabase/server";
+
+/**
+ * Supabase Database type definitions.
+ *
+ * When you run `supabase gen types typescript` these will be generated
+ * automatically. Until then we manually map our application types so
+ * the client is fully type-safe.
+ */
+import type {
+	Badge,
+	Bakery,
+	CheckIn,
+	Follow,
+	List,
+	ListItem,
+	Pastry,
+	Profile,
+	UserBadge,
+} from "@/types/database";
+
+export type Database = {
+	public: {
+		Tables: {
+			profiles: {
+				Row: Profile;
+				Insert: Omit<Profile, "created_at" | "updated_at" | "level" | "xp" | "total_checkins"> & {
+					level?: number;
+					xp?: number;
+					total_checkins?: number;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: Partial<Omit<Profile, "id" | "created_at">>;
+			};
+			bakeries: {
+				Row: Bakery;
+				Insert: Omit<Bakery, "created_at"> & { created_at?: string };
+				Update: Partial<Omit<Bakery, "id" | "created_at">>;
+			};
+			pastries: {
+				Row: Pastry;
+				Insert: Omit<Pastry, "created_at" | "avg_rating" | "total_checkins"> & {
+					avg_rating?: number | null;
+					total_checkins?: number;
+					created_at?: string;
+				};
+				Update: Partial<Omit<Pastry, "id" | "created_at">>;
+			};
+			check_ins: {
+				Row: CheckIn;
+				Insert: Omit<CheckIn, "id" | "created_at"> & {
+					id?: string;
+					created_at?: string;
+				};
+				Update: Partial<Omit<CheckIn, "id" | "created_at">>;
+			};
+			lists: {
+				Row: List;
+				Insert: Omit<List, "id" | "created_at" | "updated_at"> & {
+					id?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: Partial<Omit<List, "id" | "created_at">>;
+			};
+			list_items: {
+				Row: ListItem;
+				Insert: Omit<ListItem, "id" | "added_at"> & {
+					id?: string;
+					added_at?: string;
+				};
+				Update: Partial<Omit<ListItem, "id" | "added_at">>;
+			};
+			badges: {
+				Row: Badge;
+				Insert: Omit<Badge, "id" | "created_at"> & {
+					id?: string;
+					created_at?: string;
+				};
+				Update: Partial<Omit<Badge, "id" | "created_at">>;
+			};
+			user_badges: {
+				Row: UserBadge;
+				Insert: Omit<UserBadge, "id" | "unlocked_at"> & {
+					id?: string;
+					unlocked_at?: string;
+				};
+				Update: Partial<Omit<UserBadge, "id">>;
+			};
+			follows: {
+				Row: Follow;
+				Insert: Omit<Follow, "id" | "created_at"> & {
+					id?: string;
+					created_at?: string;
+				};
+				Update: Partial<Omit<Follow, "id" | "created_at">>;
+			};
+		};
+		Views: {
+			feed_view: {
+				Row: CheckIn & {
+					user_username: string;
+					user_display_name: string | null;
+					user_avatar_url: string | null;
+					user_level: number;
+					pastry_name: string;
+					pastry_slug: string;
+					pastry_category: string;
+					pastry_photo_url: string | null;
+					pastry_avg_rating: number | null;
+					bakery_name: string;
+					bakery_slug: string;
+					bakery_city: string | null;
+				};
+			};
+		};
+	};
+};

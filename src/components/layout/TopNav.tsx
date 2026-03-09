@@ -28,7 +28,7 @@ export function TopNav() {
 			className={clsx(
 				"fixed top-3 left-1/2 -translate-x-1/2 z-50",
 				"w-[calc(100%-24px)] max-w-[560px]",
-				"flex items-center h-14",
+				"hidden md:flex items-center h-14",
 				"rounded-full",
 				"bg-flour/75 backdrop-blur-2xl",
 				"border border-parchment/50",

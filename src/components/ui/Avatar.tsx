@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Image from "next/image";
 
 type AvatarSize = "sm" | "md" | "lg" | "xl";
 
@@ -36,11 +37,7 @@ function Avatar({ src, alt, name, size = "md", className }: AvatarProps) {
 			)}
 		>
 			{src ? (
-				<img
-					src={src}
-					alt={alt || name}
-					className="h-full w-full object-cover"
-				/>
+				<Image src={src} alt={alt || name} fill className="object-cover" />
 			) : (
 				<span aria-label={name}>{initials}</span>
 			)}

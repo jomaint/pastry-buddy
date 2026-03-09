@@ -14,8 +14,7 @@ function Chip({ selected = false, onToggle, children, className }: ChipProps) {
 	return (
 		<button
 			type="button"
-			role="option"
-			aria-selected={selected}
+			aria-pressed={selected}
 			onClick={onToggle}
 			className={clsx(
 				"inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium min-h-[44px]",

@@ -986,3 +986,41 @@ export function search(query: string) {
 export function getPastriesByCategory(category: string) {
 	return PASTRIES.filter((p) => p.category === category);
 }
+
+// Get check-in by id
+export function getCheckIn(id: string) {
+	return MOCK_CHECKINS.find((c) => c.id === id);
+}
+
+// Get check-ins for a pastry
+export function getCheckInsForPastry(pastryId: string) {
+	return MOCK_CHECKINS.filter((c) => c.pastry_id === pastryId);
+}
+
+// Get check-ins for a bakery
+export function getCheckInsForBakery(bakeryId: string) {
+	return MOCK_CHECKINS.filter((c) => c.bakery_id === bakeryId);
+}
+
+// Get check-ins for a user
+export function getCheckInsForUser(userId: string) {
+	return MOCK_CHECKINS.filter((c) => c.user_id === userId);
+}
+
+// Get user by id
+export function getUser(id: string) {
+	return MOCK_USERS.find((u) => u.id === id);
+}
+
+// Get the "current" user (u001 for demo)
+export function getCurrentUser() {
+	return MOCK_USERS[0];
+}
+
+// Get unique bakeries a user visited
+export function getBakeriesVisited(userId: string) {
+	const bakeryIds = new Set(
+		MOCK_CHECKINS.filter((c) => c.user_id === userId).map((c) => c.bakery_id),
+	);
+	return BAKERIES.filter((b) => bakeryIds.has(b.id));
+}

@@ -5,3 +5,4 @@ export { Avatar, type AvatarProps } from "./Avatar";
 export { Badge, type BadgeProps } from "./Badge";
 export { Rating, type RatingProps } from "./Rating";
 export { Chip, type ChipProps } from "./Chip";
+export { PageTransition, StaggerContainer, StaggerItem } from "./PageTransition";
