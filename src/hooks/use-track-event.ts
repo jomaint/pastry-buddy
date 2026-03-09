@@ -18,7 +18,10 @@ type EventName =
 	| "pastry_viewed"
 	| "bakery_viewed"
 	| "profile_viewed"
-	| "recommendation_clicked";
+	| "recommendation_clicked"
+	| "like"
+	| "unlike"
+	| "share";
 
 type TrackEventOptions = {
 	properties?: Record<string, unknown>;

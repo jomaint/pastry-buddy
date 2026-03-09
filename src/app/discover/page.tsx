@@ -2,13 +2,18 @@
 
 import { useBakeries, useSearchBakeries } from "@/api/bakeries";
 import { usePastries, useSearchPastries, useTrendingPastries } from "@/api/pastries";
+import { useFollow } from "@/api/profiles";
 import { useRecommendedBakeries } from "@/api/recommendations";
+import { useFriendSuggestions } from "@/api/social";
+import { PastryCard } from "@/components/pastry/PastryCard";
+import { Avatar } from "@/components/ui/Avatar";
+import { InlineRating } from "@/components/ui/InlineRating";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
 import { PastryCardSkeleton } from "@/components/ui/Skeleton";
-import { TasteMatchPill } from "@/components/ui/TasteMatchPill";
 import { PASTRY_CATEGORIES } from "@/config/pastry-categories";
+import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
-import { Croissant, MapPin, Search, Sparkles, Star, Store } from "lucide-react";
+import { Croissant, MapPin, Search, Sparkles, Star, Store, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,6 +23,8 @@ export default function DiscoverPage() {
 
 	const { data: trending, isLoading: trendingLoading } = useTrendingPastries(6);
 	const { data: allBakeries } = useBakeries();
+	const { data: friendSuggestions } = useFriendSuggestions();
+	const follow = useFollow();
 	const { data: searchedPastries } = useSearchPastries(query);
 	const { data: searchedBakeries } = useSearchBakeries(query);
 	const { data: recommendedBakeries } = useRecommendedBakeries(4);
@@ -27,10 +34,7 @@ export default function DiscoverPage() {
 
 	const trackEvent = useTrackEvent();
 	const searchTracked = useRef("");
-
-	useEffect(() => {
-		trackEvent("page_view", { pagePath: "/discover" });
-	}, [trackEvent]);
+	usePageView("/discover");
 
 	// Track search when results appear
 	useEffect(() => {
@@ -138,14 +142,9 @@ export default function DiscoverPage() {
 											{pastry.bakery_name} · {pastry.category}
 										</p>
 									</div>
-									{pastry.avg_rating && (
-										<div className="flex shrink-0 items-center gap-1">
-											<Star size={12} className="fill-caramel text-caramel" />
-											<span className="text-xs font-medium text-espresso tabular-nums">
-												{pastry.avg_rating}
-											</span>
-										</div>
-									)}
+									<div className="shrink-0">
+										<InlineRating value={pastry.avg_rating} />
+									</div>
 								</Link>
 							))}
 						</div>
@@ -162,30 +161,14 @@ export default function DiscoverPage() {
 					<StaggerContainer className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 						{categoryPastries.map((pastry) => (
 							<StaggerItem key={pastry.id}>
-								<Link
-									href={`/pastry/${pastry.id}`}
-									className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
-								>
-									<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
-										<Croissant size={28} className="text-brioche/30" />
-									</div>
-									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
-									<p className="truncate text-xs text-sesame">{getBakeryName(pastry.bakery_id)}</p>
-									{pastry.avg_rating && (
-										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-1">
-												<Star size={12} className="fill-caramel text-caramel" />
-												<span className="text-xs font-medium text-espresso tabular-nums">
-													{pastry.avg_rating}
-												</span>
-												<span className="text-xs text-sesame tabular-nums">
-													· {pastry.total_checkins}
-												</span>
-											</div>
-											<TasteMatchPill category={pastry.category} />
-										</div>
-									)}
-								</Link>
+								<PastryCard
+									id={pastry.id}
+									name={pastry.name}
+									bakeryName={getBakeryName(pastry.bakery_id)}
+									category={pastry.category}
+									avgRating={pastry.avg_rating}
+									totalCheckins={pastry.total_checkins}
+								/>
 							</StaggerItem>
 						))}
 					</StaggerContainer>
@@ -208,30 +191,14 @@ export default function DiscoverPage() {
 							<StaggerContainer className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 								{trending?.map((pastry) => (
 									<StaggerItem key={pastry.id}>
-										<Link
-											href={`/pastry/${pastry.id}`}
-											className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
-										>
-											<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
-												<Croissant size={28} className="text-brioche/30" />
-											</div>
-											<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
-											<p className="truncate text-xs text-sesame">
-												{getBakeryName(pastry.bakery_id)}
-											</p>
-											<div className="flex items-center justify-between">
-												<div className="flex items-center gap-1">
-													<Star size={12} className="fill-caramel text-caramel" />
-													<span className="text-xs font-medium text-espresso tabular-nums">
-														{pastry.avg_rating}
-													</span>
-													<span className="text-xs text-sesame tabular-nums">
-														· {pastry.total_checkins}
-													</span>
-												</div>
-												<TasteMatchPill category={pastry.category} />
-											</div>
-										</Link>
+										<PastryCard
+											id={pastry.id}
+											name={pastry.name}
+											bakeryName={getBakeryName(pastry.bakery_id)}
+											category={pastry.category}
+											avgRating={pastry.avg_rating}
+											totalCheckins={pastry.total_checkins}
+										/>
 									</StaggerItem>
 								))}
 							</StaggerContainer>
@@ -278,6 +245,49 @@ export default function DiscoverPage() {
 									</StaggerItem>
 								))}
 							</StaggerContainer>
+						</section>
+					)}
+
+					{/* People You Might Know */}
+					{friendSuggestions && friendSuggestions.length > 0 && (
+						<section className="flex flex-col gap-3">
+							<div className="flex items-center gap-1.5">
+								<Users size={14} className="text-pistachio" />
+								<h2 className="font-display text-xl text-espresso">People You Might Know</h2>
+							</div>
+							<div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
+								{friendSuggestions.map((person) => (
+									<div
+										key={person.user_id}
+										className="flex w-36 shrink-0 flex-col items-center gap-2 rounded-[16px] bg-flour p-4 shadow-sm"
+									>
+										<Avatar name={person.display_name || person.username} size="md" />
+										<div className="w-full text-center">
+											<p className="truncate text-sm font-medium text-espresso">
+												{person.display_name || `@${person.username}`}
+											</p>
+											<p className="truncate text-[11px] text-sesame">{person.reason}</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => {
+												follow.mutate(person.user_id);
+												trackEvent("follow", {
+													properties: {
+														source: "discover_suggestions",
+														target_user_id: person.user_id,
+													},
+												});
+											}}
+											disabled={follow.isPending}
+											className="inline-flex min-h-[36px] w-full items-center justify-center gap-1 rounded-[14px] bg-brioche px-3 text-xs font-medium text-flour transition-colors hover:bg-brioche/90"
+										>
+											<UserPlus size={12} />
+											Follow
+										</button>
+									</div>
+								))}
+							</div>
 						</section>
 					)}
 

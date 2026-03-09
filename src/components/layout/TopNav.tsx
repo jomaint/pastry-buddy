@@ -1,17 +1,19 @@
 "use client";
 
+import { NotificationBell } from "@/components/social/NotificationBell";
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { Bookmark, Home, PlusCircle, Search, User } from "lucide-react";
+import { Bookmark, Home, PlusCircle, Search, Trophy, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const icons = { Home, Search, PlusCircle, Bookmark, User } as const;
+const icons = { Home, Search, PlusCircle, Bookmark, Trophy, User } as const;
 
 const items = [
 	{ label: "Feed", href: "/", icon: "Home" as const },
 	{ label: "Discover", href: "/discover", icon: "Search" as const },
 	{ label: "Log", href: "/log", icon: "PlusCircle" as const },
+	{ label: "Ranks", href: "/leaderboard", icon: "Trophy" as const },
 	{ label: "Lists", href: "/lists", icon: "Bookmark" as const },
 	{ label: "Profile", href: "/profile", icon: "User" as const },
 ];
@@ -75,6 +77,11 @@ export function TopNav() {
 						</Link>
 					);
 				})}
+			</div>
+
+			{/* Notification bell */}
+			<div className="pr-2">
+				<NotificationBell />
 			</div>
 		</motion.nav>
 	);

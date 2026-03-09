@@ -98,3 +98,29 @@ export interface Follow {
 	following_id: string;
 	created_at: string;
 }
+
+export interface CheckInLike {
+	id: string;
+	check_in_id: string;
+	user_id: string;
+	created_at: string;
+}
+
+export interface CheckInComment {
+	id: string;
+	check_in_id: string;
+	user_id: string;
+	body: string;
+	created_at: string;
+}
+
+export interface Notification {
+	id: string;
+	user_id: string;
+	actor_id: string | null;
+	type: "like" | "comment" | "follow" | "badge";
+	reference_id: string | null;
+	body: string | null;
+	read: boolean;
+	created_at: string;
+}

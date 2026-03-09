@@ -19,9 +19,12 @@ import type {
 	Badge,
 	Bakery,
 	CheckIn,
+	CheckInComment,
+	CheckInLike,
 	Follow,
 	List,
 	ListItem,
+	Notification,
 	Pastry,
 	Profile,
 	UserBadge,
@@ -114,6 +117,31 @@ export type Database = {
 					created_at?: string;
 				};
 				Update: Partial<Omit<Follow, "id" | "created_at">>;
+			};
+			check_in_likes: {
+				Row: CheckInLike;
+				Insert: Omit<CheckInLike, "id" | "created_at"> & {
+					id?: string;
+					created_at?: string;
+				};
+				Update: never;
+			};
+			check_in_comments: {
+				Row: CheckInComment;
+				Insert: Omit<CheckInComment, "id" | "created_at"> & {
+					id?: string;
+					created_at?: string;
+				};
+				Update: never;
+			};
+			notifications: {
+				Row: Notification;
+				Insert: Omit<Notification, "id" | "created_at" | "read"> & {
+					id?: string;
+					read?: boolean;
+					created_at?: string;
+				};
+				Update: Partial<Pick<Notification, "read">>;
 			};
 			user_events: {
 				Row: {

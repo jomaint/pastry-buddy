@@ -2,10 +2,12 @@
 
 import { useCreateList, useList, useLists, useRemoveFromList } from "@/api/lists";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
 import { ListCardSkeleton } from "@/components/ui/Skeleton";
+import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import {
 	ArrowLeft,
@@ -21,17 +23,14 @@ import {
 	X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function ListsPage() {
 	const { data: lists, isLoading } = useLists();
 	const [selectedListId, setSelectedListId] = useState<string | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const trackEvent = useTrackEvent();
-
-	useEffect(() => {
-		trackEvent("page_view", { pagePath: "/lists" });
-	}, [trackEvent]);
+	usePageView("/lists");
 
 	if (selectedListId) {
 		return <ListDetailView listId={selectedListId} onBack={() => setSelectedListId(null)} />;
@@ -83,19 +82,17 @@ export default function ListsPage() {
 					))}
 				</div>
 			) : (
-				<div className="flex flex-col items-center justify-center py-16 text-center">
-					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-parchment/60">
-						<Croissant size={24} className="text-brioche/40" />
-					</div>
-					<p className="font-display text-xl text-espresso">No lists yet</p>
-					<p className="mt-2 max-w-[260px] text-sm leading-relaxed text-sesame">
-						Create lists to organize your favorite pastries and share them with friends
-					</p>
-					<Button className="mt-6" onClick={() => setShowCreateModal(true)}>
-						<Plus size={14} />
-						Create your first list
-					</Button>
-				</div>
+				<EmptyState
+					icon={<Croissant size={24} className="text-brioche/40" />}
+					title="No lists yet"
+					description="Create lists to organize your favorite pastries and share them with friends"
+					action={
+						<Button onClick={() => setShowCreateModal(true)}>
+							<Plus size={14} />
+							Create your first list
+						</Button>
+					}
+				/>
 			)}
 
 			{showCreateModal && <CreateListModal onClose={() => setShowCreateModal(false)} />}
@@ -188,22 +185,20 @@ function ListDetailView({ listId, onBack }: { listId: string; onBack: () => void
 					))}
 				</div>
 			) : (
-				<div className="flex flex-col items-center justify-center py-16 text-center">
-					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-parchment/60">
-						<Bookmark size={24} className="text-brioche/40" />
-					</div>
-					<p className="font-display text-xl text-espresso">This list is empty</p>
-					<p className="mt-2 max-w-[260px] text-sm leading-relaxed text-sesame">
-						Add pastries from their detail pages to build this list
-					</p>
-					<Link
-						href="/discover"
-						className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-all duration-150 hover:bg-brioche/90 active:scale-[0.98]"
-					>
-						<Search size={14} />
-						Discover pastries
-					</Link>
-				</div>
+				<EmptyState
+					icon={<Bookmark size={24} className="text-brioche/40" />}
+					title="This list is empty"
+					description="Add pastries from their detail pages to build this list"
+					action={
+						<Link
+							href="/discover"
+							className="inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-all duration-150 hover:bg-brioche/90 active:scale-[0.98]"
+						>
+							<Search size={14} />
+							Discover pastries
+						</Link>
+					}
+				/>
 			)}
 		</PageTransition>
 	);

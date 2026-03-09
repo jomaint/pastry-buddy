@@ -1,8 +1,9 @@
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { InlineRating } from "@/components/ui/InlineRating";
 import { BakeryMap } from "@/components/ui/Map";
 import { createClient } from "@/lib/supabase/server";
 import type { Bakery, Pastry } from "@/types/database";
-import { Croissant, ExternalLink, MapPin, Star, Store } from "lucide-react";
+import { Croissant, ExternalLink, MapPin, Store } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -121,15 +122,7 @@ export default async function BakeryDetailPage({
 										</div>
 										<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 										<p className="text-xs text-sesame">{pastry.category}</p>
-										{pastry.avg_rating && (
-											<div className="flex items-center gap-1">
-												<Star size={12} className="fill-caramel text-caramel" />
-												<span className="text-xs font-medium text-espresso">
-													{pastry.avg_rating}
-												</span>
-												<span className="text-xs text-sesame">· {pastry.total_checkins}</span>
-											</div>
-										)}
+										<InlineRating value={pastry.avg_rating} count={pastry.total_checkins} />
 									</Link>
 								))}
 							</div>

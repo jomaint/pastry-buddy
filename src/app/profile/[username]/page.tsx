@@ -14,6 +14,7 @@ import {
 import { useStreakRpc, useTasteSimilarity } from "@/api/social";
 import { FavoritePastries } from "@/components/profile";
 import { BadgeCard } from "@/components/profile/BadgeCard";
+import { StatsGrid } from "@/components/profile/StatsGrid";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
 import { BADGES } from "@/config/badges";
@@ -153,19 +154,7 @@ export default function PublicProfilePage({
 			</div>
 
 			{/* Stats */}
-			<div className="flex items-center justify-center gap-0 rounded-[16px] bg-parchment/60 py-4">
-				{stats.map((stat, i) => (
-					<div
-						key={stat.label}
-						className={`flex flex-1 flex-col items-center gap-0.5 ${
-							i < stats.length - 1 ? "border-r border-parchment" : ""
-						}`}
-					>
-						<span className="font-display text-2xl text-espresso tabular-nums">{stat.value}</span>
-						<span className="text-xs text-sesame">{stat.label}</span>
-					</div>
-				))}
-			</div>
+			<StatsGrid stats={stats} />
 
 			{/* Favorite Pastries (read-only on public profiles) */}
 			<FavoritePastries favorites={profile.favorite_categories} />

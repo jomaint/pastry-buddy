@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/Toast";
 import { getContextualFlavors } from "@/config/contextual-flavors";
 import { FLAVOR_TAGS, TEXTURE_TAGS } from "@/config/pastry-categories";
 import { useDebounce } from "@/hooks/use-debounce";
+import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import type { PlaceResult } from "@/lib/place-search";
 import { searchPlaces } from "@/lib/place-search";
@@ -59,9 +60,7 @@ export default function LogPage() {
 	const { data: auth } = useAuth();
 	const trackEvent = useTrackEvent();
 
-	useEffect(() => {
-		trackEvent("page_view", { pagePath: "/log" });
-	}, [trackEvent]);
+	usePageView("/log");
 
 	// Supabase hooks
 	const { data: popularBakeries } = useBakeries();

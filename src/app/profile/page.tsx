@@ -7,15 +7,17 @@ import { useBakeriesVisited, useFollowCounts, useUpdateProfile } from "@/api/pro
 import { useStreakRpc, useUnlockedFeatures } from "@/api/social";
 import { FavoritePastries } from "@/components/profile";
 import { BadgeCard } from "@/components/profile/BadgeCard";
+import { StatsGrid } from "@/components/profile/StatsGrid";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
 import { ProfileSkeleton, StatsSkeleton } from "@/components/ui/Skeleton";
 import { BADGES } from "@/config/badges";
+import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import { evaluateBadges } from "@/lib/badge-utils";
 import { Award, BarChart3, Flame, Lock, Trophy, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function ProfilePage() {
@@ -32,9 +34,7 @@ export default function ProfilePage() {
 	const updateProfile = useUpdateProfile();
 	const trackEvent = useTrackEvent();
 
-	useEffect(() => {
-		trackEvent("page_view", { pagePath: "/profile" });
-	}, [trackEvent]);
+	usePageView("/profile");
 
 	const badgeStatuses = useMemo(() => {
 		if (!profile) return [];
@@ -109,19 +109,7 @@ export default function ProfilePage() {
 			</div>
 
 			{/* Stats */}
-			<div className="flex items-center justify-center gap-0 rounded-[16px] bg-parchment/60 py-4">
-				{stats.map((stat, i) => (
-					<div
-						key={stat.label}
-						className={`flex flex-1 flex-col items-center gap-0.5 ${
-							i < stats.length - 1 ? "border-r border-parchment" : ""
-						}`}
-					>
-						<span className="font-display text-2xl text-espresso tabular-nums">{stat.value}</span>
-						<span className="text-xs text-sesame">{stat.label}</span>
-					</div>
-				))}
-			</div>
+			<StatsGrid stats={stats} />
 
 			{/* Favorite Pastries */}
 			<FavoritePastries

@@ -6,19 +6,24 @@ import { useFeed } from "@/api/check-ins";
 import { useGettingStartedChecklist } from "@/api/onboarding";
 import { useTrendingPastries } from "@/api/pastries";
 import { usePersonalizedFeed } from "@/api/recommendations";
+import { MiniLeaderboard } from "@/components/leaderboard/MiniLeaderboard";
 import { GettingStartedCard } from "@/components/onboarding/GettingStartedCard";
+import { LikeButton } from "@/components/social/LikeButton";
+import { ShareButton } from "@/components/social/ShareButton";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
+import { InlineRating } from "@/components/ui/InlineRating";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { Rating } from "@/components/ui/Rating";
 import { FeedCardSkeleton, PastryCardSkeleton } from "@/components/ui/Skeleton";
 import { TasteMatchPill } from "@/components/ui/TasteMatchPill";
+import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import { timeAgo } from "@/lib/time-utils";
-import { Camera, Croissant, MapPin, Sparkles, Star } from "lucide-react";
+import { Camera, Croissant, MapPin, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 export default function FeedPage() {
 	const { data: auth } = useAuth();
@@ -32,10 +37,7 @@ export default function FeedPage() {
 	const { data: forYou, refetch: refetchForYou } = usePersonalizedFeed(6);
 	const { data: checklist } = useGettingStartedChecklist(auth?.user?.id);
 	const trackEvent = useTrackEvent();
-
-	useEffect(() => {
-		trackEvent("page_view", { pagePath: "/" });
-	}, [trackEvent]);
+	usePageView("/");
 
 	const handleRefresh = useCallback(async () => {
 		await Promise.all([refetchTrending(), refetchFeed(), refetchForYou()]);
@@ -53,6 +55,9 @@ export default function FeedPage() {
 					checklist &&
 					!checklist.onboarding_completed &&
 					checklist.checkin_count < 5 && <GettingStartedCard checklist={checklist} />}
+
+				{/* Mini leaderboard widget */}
+				{auth?.user && <MiniLeaderboard userId={auth.user.id} />}
 
 				{/* Trending row */}
 				<section>
@@ -81,15 +86,7 @@ export default function FeedPage() {
 									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 									<p className="truncate text-xs text-sesame">{getBakeryName(pastry.bakery_id)}</p>
 									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-1">
-											<Star size={12} className="fill-caramel text-caramel" />
-											<span className="text-xs font-medium text-espresso tabular-nums">
-												{pastry.avg_rating}
-											</span>
-											<span className="text-xs text-sesame tabular-nums">
-												· {pastry.total_checkins}
-											</span>
-										</div>
+										<InlineRating value={pastry.avg_rating} count={pastry.total_checkins} />
 										<TasteMatchPill category={pastry.category} />
 									</div>
 								</Link>
@@ -128,14 +125,7 @@ export default function FeedPage() {
 									<p className="truncate text-xs text-sesame">{rec.bakery_name}</p>
 									<p className="text-[11px] text-brioche/70 truncate">{rec.reason}</p>
 									<div className="flex items-center justify-between">
-										{rec.avg_rating && (
-											<div className="flex items-center gap-1">
-												<Star size={12} className="fill-caramel text-caramel" />
-												<span className="text-xs font-medium text-espresso tabular-nums">
-													{rec.avg_rating}
-												</span>
-											</div>
-										)}
+										<InlineRating value={rec.avg_rating} />
 										<TasteMatchPill category={rec.pastry_category} />
 									</div>
 								</Link>
@@ -221,6 +211,16 @@ export default function FeedPage() {
 												))}
 											</div>
 										)}
+
+										{/* Social actions */}
+										<div className="flex items-center gap-2 pt-1">
+											<LikeButton checkInId={checkin.id} compact />
+											<ShareButton
+												checkInId={checkin.id}
+												pastryName={checkin.pastry_name}
+												compact
+											/>
+										</div>
 									</Link>
 								</StaggerItem>
 							))}

@@ -1,5 +1,6 @@
 "use client";
 
+import { NotificationBell } from "@/components/social/NotificationBell";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -23,9 +24,10 @@ export function Header({ showBack, title }: HeaderProps) {
 					<ArrowLeft size={20} />
 				</button>
 			)}
-			<span className="font-display text-lg text-espresso tracking-tight ml-1">
+			<span className="flex-1 font-display text-lg text-espresso tracking-tight ml-1">
 				{title ?? "Pastry Buddy"}
 			</span>
+			<NotificationBell />
 		</header>
 	);
 }

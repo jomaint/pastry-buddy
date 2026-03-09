@@ -1,13 +1,16 @@
 "use client";
 
 import { useCheckIn } from "@/api/check-ins";
+import { CommentSection } from "@/components/social/CommentSection";
+import { LikeButton } from "@/components/social/LikeButton";
+import { ShareButton } from "@/components/social/ShareButton";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
 import { useTrackEvent } from "@/hooks/use-track-event";
 import { timeAgo } from "@/lib/time-utils";
-import { Camera, Heart, Loader2, MapPin } from "lucide-react";
+import { Camera, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { use, useEffect } from "react";
@@ -114,19 +117,19 @@ export default function CheckInDetailPage({
 
 				{/* Actions */}
 				<div className="flex gap-3">
-					<button
-						type="button"
-						className="inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-parchment px-5 text-sm font-medium text-espresso transition-colors duration-150 hover:bg-parchment/80"
-					>
-						<Heart size={16} />
-						Crave
-					</button>
+					<LikeButton checkInId={id} />
+					<ShareButton checkInId={id} pastryName={checkin.pastry_name} />
 					<Link
 						href={`/pastry/${checkin.pastry_id}`}
-						className="inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-brioche/10 px-5 text-sm font-medium text-brioche transition-colors duration-150 hover:bg-brioche/20"
+						className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-brioche/10 px-5 text-sm font-medium text-brioche transition-colors duration-150 hover:bg-brioche/20"
 					>
 						View Pastry
 					</Link>
+				</div>
+
+				{/* Comments */}
+				<div className="border-t border-parchment pt-6">
+					<CommentSection checkInId={id} />
 				</div>
 			</div>
 		</PageTransition>
