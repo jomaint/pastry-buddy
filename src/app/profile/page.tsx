@@ -1,3 +1,8 @@
+"use client";
+
+import { FavoritePastries } from "@/components/profile";
+import { useState } from "react";
+
 const stats = [
 	{ label: "Logged", value: 0 },
 	{ label: "Bakeries", value: 0 },
@@ -5,11 +10,12 @@ const stats = [
 ];
 
 export default function ProfilePage() {
+	const [favorites, setFavorites] = useState<string[]>([]);
+
 	return (
 		<div className="flex flex-col gap-8 px-4 py-6">
 			{/* Header */}
 			<div className="flex flex-col items-center gap-3 text-center">
-				{/* Avatar */}
 				<div className="flex h-20 w-20 items-center justify-center rounded-full bg-parchment">
 					<svg
 						width="28"
@@ -39,21 +45,20 @@ export default function ProfilePage() {
 							i < stats.length - 1 ? "border-r border-parchment" : ""
 						}`}
 					>
-						<span className="font-display text-2xl text-espresso">
-							{stat.value}
-						</span>
+						<span className="font-display text-2xl text-espresso">{stat.value}</span>
 						<span className="text-xs text-sesame">{stat.label}</span>
 					</div>
 				))}
 			</div>
 
+			{/* Favorite Pastries */}
+			<FavoritePastries favorites={favorites} editable onSave={setFavorites} />
+
 			{/* Taste Profile */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Taste Profile</h2>
 				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">
-					<p className="text-sm text-sesame">
-						Log more pastries to build your taste profile
-					</p>
+					<p className="text-sm text-sesame">Log more pastries to build your taste profile</p>
 				</div>
 			</section>
 
@@ -76,9 +81,7 @@ export default function ProfilePage() {
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Top 5</h2>
 				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-12">
-					<p className="text-sm text-sesame">
-						Rate pastries to build your top 5
-					</p>
+					<p className="text-sm text-sesame">Rate pastries to build your top 5</p>
 				</div>
 			</section>
 		</div>

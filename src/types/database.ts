@@ -4,6 +4,7 @@ export interface Profile {
 	display_name: string | null;
 	avatar_url: string | null;
 	bio: string | null;
+	favorite_categories: string[];
 	level: number;
 	xp: number;
 	total_checkins: number;

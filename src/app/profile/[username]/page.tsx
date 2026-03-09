@@ -1,8 +1,13 @@
+import { FavoritePastries } from "@/components/profile";
+
 const stats = [
 	{ label: "Logged", value: 12 },
 	{ label: "Bakeries", value: 5 },
 	{ label: "Streak", value: 3 },
 ];
+
+// Placeholder — will come from Supabase once wired
+const mockFavorites = ["Croissants", "Tarts", "Cakes"];
 
 export default async function PublicProfilePage({
 	params,
@@ -50,13 +55,14 @@ export default async function PublicProfilePage({
 							i < stats.length - 1 ? "border-r border-parchment" : ""
 						}`}
 					>
-						<span className="font-display text-2xl text-espresso">
-							{stat.value}
-						</span>
+						<span className="font-display text-2xl text-espresso">{stat.value}</span>
 						<span className="text-xs text-sesame">{stat.label}</span>
 					</div>
 				))}
 			</div>
+
+			{/* Favorite Pastries (read-only on public profiles) */}
+			<FavoritePastries favorites={mockFavorites} />
 
 			{/* Taste Profile */}
 			<section className="flex flex-col gap-3">
