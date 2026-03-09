@@ -71,16 +71,4 @@
 	}
 }
 
-/* Shell content offset — responds to sidebar width via CSS variable */
-@layer components {
-	.shell-content {
-		margin-left: 0;
-		transition: margin-left 200ms cubic-bezier(0.25, 1, 0.5, 1);
-	}
-
-	@media (min-width: 768px) {
-		.shell-content {
-			margin-left: var(--sidebar-w, 256px);
-		}
-	}
-}
+/* Legacy shell-content offset — kept for reference, no longer used */
