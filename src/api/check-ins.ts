@@ -271,6 +271,7 @@ export function useCreateCheckIn() {
 			queryClient.invalidateQueries({ queryKey: ["unlocked-features"] });
 			queryClient.invalidateQueries({ queryKey: ["taste-similarity"] });
 			queryClient.invalidateQueries({ queryKey: ["pastry-match"] });
+			queryClient.invalidateQueries({ queryKey: ["getting-started"] });
 		},
 	});
 }

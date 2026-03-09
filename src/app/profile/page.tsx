@@ -84,7 +84,7 @@ export default function ProfilePage() {
 	];
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6">
+		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6 lg:max-w-3xl lg:py-8">
 			{/* Header */}
 			<div className="flex flex-col items-center gap-3 text-center">
 				<div className="flex h-20 w-20 items-center justify-center rounded-full bg-parchment">
@@ -221,7 +221,7 @@ export default function ProfilePage() {
 								{unlockedCount}/{badgeStatuses.length} unlocked
 							</span>
 						</div>
-						<div className="grid grid-cols-3 gap-2">
+						<div className="grid grid-cols-3 gap-2 lg:grid-cols-4">
 							{[...badgeStatuses]
 								.sort((a, b) => (a.unlocked === b.unlocked ? 0 : a.unlocked ? -1 : 1))
 								.map((status) => (

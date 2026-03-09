@@ -311,7 +311,7 @@ export default function LogPage() {
 	const stepIndex = step === "bakery" ? 0 : step === "pastry" ? 1 : step === "rate" ? 2 : 3;
 
 	return (
-		<div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6">
+		<div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6 lg:py-8">
 			<Confetti active={showConfetti} />
 			{step !== "done" && (
 				<>

@@ -62,7 +62,7 @@ function FavoritePastries({ favorites, editable = false, onSave }: FavoritePastr
 						<button
 							type="button"
 							onClick={() => setIsEditing(true)}
-							className="mt-1 inline-flex h-8 items-center rounded-[14px] bg-brioche px-4 text-sm font-medium text-flour transition-colors duration-150 hover:bg-brioche/90"
+							className="mt-1 inline-flex min-h-[44px] items-center rounded-[14px] bg-brioche px-4 text-sm font-medium text-flour transition-colors duration-150 hover:bg-brioche/90"
 						>
 							Add favorites
 						</button>
@@ -104,14 +104,14 @@ function FavoritePastries({ favorites, editable = false, onSave }: FavoritePastr
 					<button
 						type="button"
 						onClick={handleSave}
-						className="inline-flex h-8 items-center rounded-[14px] bg-brioche px-4 text-sm font-medium text-flour transition-colors duration-150 hover:bg-brioche/90"
+						className="inline-flex min-h-[44px] items-center rounded-[14px] bg-brioche px-4 text-sm font-medium text-flour transition-colors duration-150 hover:bg-brioche/90"
 					>
 						Save
 					</button>
 					<button
 						type="button"
 						onClick={handleCancel}
-						className="inline-flex h-8 items-center rounded-[14px] px-4 text-sm font-medium text-sesame transition-colors duration-150 hover:bg-parchment hover:text-ganache"
+						className="inline-flex min-h-[44px] items-center rounded-[14px] px-4 text-sm font-medium text-sesame transition-colors duration-150 hover:bg-parchment hover:text-ganache"
 					>
 						Cancel
 					</button>

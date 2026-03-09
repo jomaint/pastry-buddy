@@ -1,0 +1,1 @@
+export { GettingStartedCard } from "./GettingStartedCard";

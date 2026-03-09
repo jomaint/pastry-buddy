@@ -87,7 +87,7 @@ export function useSignUp() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
-			router.push("/");
+			router.push("/onboarding");
 		},
 	});
 }

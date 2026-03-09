@@ -105,7 +105,7 @@ export default function PublicProfilePage({
 	};
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6">
+		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6 lg:max-w-3xl lg:py-8">
 			{/* Header */}
 			<div className="flex flex-col items-center gap-3 text-center">
 				<div className="flex h-20 w-20 items-center justify-center rounded-full bg-parchment">
@@ -243,7 +243,7 @@ export default function PublicProfilePage({
 			{unlockedBadges.length > 0 && (
 				<section className="flex flex-col gap-3">
 					<h2 className="font-display text-xl text-espresso">Badges</h2>
-					<div className="grid grid-cols-3 gap-2">
+					<div className="grid grid-cols-3 gap-2 lg:grid-cols-4">
 						{unlockedBadges.map((status) => (
 							<BadgeCard key={status.badge.name} badge={status.badge} unlocked />
 						))}

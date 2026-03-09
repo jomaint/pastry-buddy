@@ -11,7 +11,9 @@ export function Shell({ children }: ShellProps) {
 	return (
 		<div className="min-h-dvh bg-creme">
 			<TopNav />
-			<main className="pt-[env(safe-area-inset-top)] pb-24 md:pt-20 md:pb-6">{children}</main>
+			<main className="pt-[env(safe-area-inset-top)] pb-[calc(96px+env(safe-area-inset-bottom))] md:pt-20 md:pb-6 lg:px-6">
+				{children}
+			</main>
 			<BottomNav />
 		</div>
 	);

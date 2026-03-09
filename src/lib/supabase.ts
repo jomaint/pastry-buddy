@@ -32,10 +32,21 @@ export type Database = {
 		Tables: {
 			profiles: {
 				Row: Profile;
-				Insert: Omit<Profile, "created_at" | "updated_at" | "level" | "xp" | "total_checkins"> & {
+				Insert: Omit<
+					Profile,
+					| "created_at"
+					| "updated_at"
+					| "level"
+					| "xp"
+					| "total_checkins"
+					| "onboarding_completed"
+					| "onboarding_step"
+				> & {
 					level?: number;
 					xp?: number;
 					total_checkins?: number;
+					onboarding_completed?: boolean;
+					onboarding_step?: string;
 					created_at?: string;
 					updated_at?: string;
 				};

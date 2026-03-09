@@ -49,7 +49,7 @@ export default function DiscoverPage() {
 	const showingResults = hasSearchResults || hasCategoryResults;
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
+		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-4xl lg:gap-8 lg:py-8">
 			<h1 className="font-display text-3xl text-espresso">Discover</h1>
 
 			{/* Search bar */}
@@ -159,7 +159,7 @@ export default function DiscoverPage() {
 					<p className="text-xs font-medium uppercase tracking-wide text-sesame">
 						{categoryPastries.length} {activeCategory} pastries
 					</p>
-					<StaggerContainer className="grid grid-cols-2 gap-3">
+					<StaggerContainer className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 						{categoryPastries.map((pastry) => (
 							<StaggerItem key={pastry.id}>
 								<Link
@@ -199,13 +199,13 @@ export default function DiscoverPage() {
 					<section className="flex flex-col gap-3">
 						<h2 className="font-display text-xl text-espresso">Trending Near You</h2>
 						{trendingLoading ? (
-							<div className="grid grid-cols-2 gap-3">
+							<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 								{[1, 2, 3, 4].map((i) => (
 									<PastryCardSkeleton key={i} />
 								))}
 							</div>
 						) : (
-							<StaggerContainer className="grid grid-cols-2 gap-3">
+							<StaggerContainer className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 								{trending?.map((pastry) => (
 									<StaggerItem key={pastry.id}>
 										<Link

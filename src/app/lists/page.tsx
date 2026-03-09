@@ -38,7 +38,7 @@ export default function ListsPage() {
 	}
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
+		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-3xl lg:py-8">
 			<div className="flex items-center justify-between">
 				<h1 className="font-display text-3xl text-espresso">Your Lists</h1>
 				<Button size="sm" onClick={() => setShowCreateModal(true)}>
@@ -131,14 +131,15 @@ function ListDetailView({ listId, onBack }: { listId: string; onBack: () => void
 	}
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
+		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-3xl lg:py-8">
 			<div className="flex items-center gap-3">
 				<button
 					type="button"
+					aria-label="Go back to lists"
 					onClick={onBack}
 					className="flex h-8 w-8 items-center justify-center rounded-full bg-parchment/60 transition-colors hover:bg-parchment"
 				>
-					<ArrowLeft size={16} className="text-espresso" />
+					<ArrowLeft size={16} className="text-espresso" aria-hidden="true" />
 				</button>
 				<div className="flex-1 min-w-0">
 					<h1 className="font-display text-2xl text-espresso truncate">{list.name}</h1>
@@ -176,11 +177,12 @@ function ListDetailView({ listId, onBack }: { listId: string; onBack: () => void
 							</div>
 							<button
 								type="button"
+								aria-label={`Remove ${item.pastry.name} from list`}
 								onClick={() => removeFromList.mutate({ itemId: item.id, listId })}
 								disabled={removeFromList.isPending}
 								className="flex h-8 w-8 items-center justify-center rounded-full text-sesame transition-colors hover:bg-parchment hover:text-raspberry"
 							>
-								<Trash2 size={14} />
+								<Trash2 size={14} aria-hidden="true" />
 							</button>
 						</div>
 					))}
@@ -232,16 +234,27 @@ function CreateListModal({ onClose }: { onClose: () => void }) {
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 px-4">
-			<div className="w-full max-w-sm rounded-[16px] bg-flour p-6 shadow-lg">
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-espresso/40 px-4"
+			onKeyDown={(e) => e.key === "Escape" && onClose()}
+		>
+			{/* biome-ignore lint/a11y/useSemanticElements: role="dialog" is valid WCAG; native <dialog> requires .showModal() API */}
+			<div
+				role="dialog"
+				aria-labelledby="create-list-title"
+				className="w-full max-w-sm rounded-[16px] bg-flour p-6 shadow-lg"
+			>
 				<div className="flex items-center justify-between mb-5">
-					<h2 className="font-display text-xl text-espresso">New List</h2>
+					<h2 id="create-list-title" className="font-display text-xl text-espresso">
+						New List
+					</h2>
 					<button
 						type="button"
+						aria-label="Close"
 						onClick={onClose}
 						className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-parchment"
 					>
-						<X size={16} className="text-sesame" />
+						<X size={16} className="text-sesame" aria-hidden="true" />
 					</button>
 				</div>
 

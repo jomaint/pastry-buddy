@@ -8,6 +8,8 @@ export interface Profile {
 	level: number;
 	xp: number;
 	total_checkins: number;
+	onboarding_completed: boolean;
+	onboarding_step: string;
 	created_at: string;
 	updated_at: string;
 }

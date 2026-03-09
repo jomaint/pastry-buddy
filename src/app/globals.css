@@ -31,9 +31,30 @@
 }
 
 @layer base {
+	html {
+		-webkit-text-size-adjust: 100%;
+		scroll-behavior: smooth;
+	}
+
 	body {
 		@apply bg-creme text-espresso antialiased;
 		font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+		-webkit-tap-highlight-color: transparent;
+		overscroll-behavior-y: contain;
+	}
+
+	/* Prevent zoom on input focus (iOS) */
+	input,
+	select,
+	textarea {
+		font-size: 16px;
+	}
+
+	/* Better touch behavior on interactive elements */
+	button,
+	a,
+	[role="button"] {
+		touch-action: manipulation;
 	}
 
 	::selection {
