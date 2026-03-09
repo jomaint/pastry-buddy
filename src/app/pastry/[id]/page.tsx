@@ -1,5 +1,5 @@
 import { getBakery, getPastry } from "@/lib/mock-data";
-import { Bookmark, Heart, Star } from "lucide-react";
+import { Bookmark, Heart, Star, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,13 +16,16 @@ export default async function PastryDetailPage({
 	const bakery = getBakery(pastry.bakery_id);
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="mx-auto max-w-2xl">
 			{/* Hero image placeholder */}
 			<div className="relative aspect-[4/5] w-full bg-parchment">
+				<div className="absolute inset-0 flex items-center justify-center">
+					<UtensilsCrossed size={48} className="text-sesame/40" />
+				</div>
 				<div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-espresso/40 to-transparent" />
 			</div>
 
-			<div className="flex flex-col gap-6 px-4 pb-8">
+			<div className="flex flex-col gap-6 px-4 pb-8 pt-6">
 				{/* Title + bakery */}
 				<div>
 					<h1 className="font-display text-2xl text-espresso">{pastry.name}</h1>
@@ -71,7 +74,7 @@ export default async function PastryDetailPage({
 				<div className="flex gap-3">
 					<button
 						type="button"
-						className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90"
+						className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
 					>
 						<Heart size={16} />
 						Crave

@@ -8,7 +8,7 @@ import {
 	getTrendingPastries,
 	search,
 } from "@/lib/mock-data";
-import { MapPin, Search, Star } from "lucide-react";
+import { Croissant, MapPin, Search, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -23,7 +23,7 @@ export default function DiscoverPage() {
 	const showingResults = searchResults || categoryResults;
 
 	return (
-		<div className="flex flex-col gap-6 px-4 py-6">
+		<div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
 			<h1 className="font-display text-3xl text-espresso">Discover</h1>
 
 			{/* Search bar */}
@@ -51,7 +51,7 @@ export default function DiscoverPage() {
 							setActiveCategory(activeCategory === cat.name ? null : cat.name);
 							setQuery("");
 						}}
-						className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+						className={`shrink-0 rounded-full px-4 min-h-9 text-sm font-medium transition-colors ${
 							activeCategory === cat.name
 								? "bg-brioche text-flour"
 								: "bg-parchment text-ganache hover:bg-brioche/10 hover:text-brioche"
@@ -72,19 +72,19 @@ export default function DiscoverPage() {
 
 					{searchResults.bakeries.length > 0 && (
 						<div className="flex flex-col gap-2">
-							<p className="text-xs font-medium text-sesame">Bakeries</p>
+							<p className="text-xs font-medium uppercase tracking-wide text-sesame">Bakeries</p>
 							{searchResults.bakeries.map((bakery) => (
 								<Link
 									key={bakery.id}
 									href={`/bakery/${bakery.id}`}
 									className="flex items-center gap-3 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 								>
-									<div className="flex h-12 w-12 items-center justify-center rounded-[12px] bg-parchment">
-										<MapPin size={18} className="text-sesame" />
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-parchment">
+										<MapPin size={16} className="text-sesame" />
 									</div>
-									<div>
-										<p className="text-sm font-medium text-espresso">{bakery.name}</p>
-										<p className="text-xs text-sesame">
+									<div className="min-w-0 flex-1">
+										<p className="truncate text-sm font-medium text-espresso">{bakery.name}</p>
+										<p className="truncate text-xs text-sesame">
 											{bakery.address}, {bakery.city}
 										</p>
 									</div>
@@ -95,7 +95,7 @@ export default function DiscoverPage() {
 
 					{searchResults.pastries.length > 0 && (
 						<div className="flex flex-col gap-2">
-							<p className="text-xs font-medium text-sesame">Pastries</p>
+							<p className="text-xs font-medium uppercase tracking-wide text-sesame">Pastries</p>
 							{searchResults.pastries.map((pastry) => {
 								const bakery = getBakery(pastry.bakery_id);
 								return (
@@ -104,17 +104,17 @@ export default function DiscoverPage() {
 										href={`/pastry/${pastry.id}`}
 										className="flex items-center gap-3 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 									>
-										<div className="flex h-12 w-12 items-center justify-center rounded-[12px] bg-parchment">
-											<Star size={18} className="text-sesame" />
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-parchment">
+											<Croissant size={16} className="text-brioche/40" />
 										</div>
-										<div className="flex-1">
-											<p className="text-sm font-medium text-espresso">{pastry.name}</p>
-											<p className="text-xs text-sesame">
+										<div className="min-w-0 flex-1">
+											<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
+											<p className="truncate text-xs text-sesame">
 												{bakery?.name} · {pastry.category}
 											</p>
 										</div>
 										{pastry.avg_rating && (
-											<div className="flex items-center gap-1">
+											<div className="flex shrink-0 items-center gap-1">
 												<Star size={12} className="fill-caramel text-caramel" />
 												<span className="text-xs font-medium text-espresso">
 													{pastry.avg_rating}
@@ -144,7 +144,9 @@ export default function DiscoverPage() {
 									href={`/pastry/${pastry.id}`}
 									className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 								>
-									<div className="aspect-square w-full rounded-[12px] bg-parchment" />
+									<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
+										<Croissant size={28} className="text-brioche/30" />
+									</div>
 									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 									<p className="truncate text-xs text-sesame">{bakery?.name}</p>
 									{pastry.avg_rating && (
@@ -176,7 +178,9 @@ export default function DiscoverPage() {
 										href={`/pastry/${pastry.id}`}
 										className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 									>
-										<div className="aspect-square w-full rounded-[12px] bg-parchment" />
+										<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
+											<Croissant size={28} className="text-brioche/30" />
+										</div>
 										<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 										<p className="truncate text-xs text-sesame">{bakery?.name}</p>
 										<div className="flex items-center gap-1">
@@ -200,12 +204,12 @@ export default function DiscoverPage() {
 									href={`/bakery/${bakery.id}`}
 									className="flex items-center gap-3 rounded-[16px] bg-flour p-3 shadow-sm transition-shadow hover:shadow-md"
 								>
-									<div className="flex h-12 w-12 items-center justify-center rounded-[12px] bg-parchment">
-										<MapPin size={18} className="text-brioche" />
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-parchment">
+										<MapPin size={16} className="text-brioche" />
 									</div>
-									<div>
-										<p className="text-sm font-medium text-espresso">{bakery.name}</p>
-										<p className="text-xs text-sesame">{bakery.city}</p>
+									<div className="min-w-0">
+										<p className="truncate text-sm font-medium text-espresso">{bakery.name}</p>
+										<p className="truncate text-xs text-sesame">{bakery.city}</p>
 									</div>
 								</Link>
 							))}

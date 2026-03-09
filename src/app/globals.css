@@ -18,6 +18,10 @@
 	--color-dark-bg: #1A1210;
 	--color-dark-text: #F2EAE0;
 
+	/* Fonts — Next.js injects --font-display and --font-body via class on <html> */
+	--font-display: "DM Serif Display", serif;
+	--font-body: "DM Sans", sans-serif;
+
 	/* Border radius */
 	--radius-card: 16px;
 	--radius-button: 14px;
@@ -29,6 +33,22 @@
 @layer base {
 	body {
 		@apply bg-creme text-espresso antialiased;
+		font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+	}
+
+	::selection {
+		background-color: var(--color-brioche);
+		color: var(--color-flour);
+	}
+
+	/* Hide scrollbar for horizontal scroll containers */
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
 	}
 
 	/* Scrollbar styling */
@@ -48,5 +68,19 @@
 
 	::-webkit-scrollbar-thumb:hover {
 		background: var(--color-ganache);
+	}
+}
+
+/* Shell content offset — responds to sidebar width via CSS variable */
+@layer components {
+	.shell-content {
+		margin-left: 0;
+		transition: margin-left 200ms cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	@media (min-width: 768px) {
+		.shell-content {
+			margin-left: var(--sidebar-w, 256px);
+		}
 	}
 }

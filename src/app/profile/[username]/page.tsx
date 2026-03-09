@@ -1,4 +1,5 @@
 import { FavoritePastries } from "@/components/profile";
+import { ChartBar, Trophy, User } from "lucide-react";
 
 const stats = [
 	{ label: "Logged", value: 12 },
@@ -17,22 +18,11 @@ export default async function PublicProfilePage({
 	const { username } = await params;
 
 	return (
-		<div className="flex flex-col gap-8 px-4 py-6">
+		<div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6">
 			{/* Header */}
 			<div className="flex flex-col items-center gap-3 text-center">
 				<div className="flex h-20 w-20 items-center justify-center rounded-full bg-parchment">
-					<svg
-						width="28"
-						height="28"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.5"
-						className="text-sesame"
-					>
-						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-						<circle cx="12" cy="7" r="4" />
-					</svg>
+					<User size={28} className="text-sesame" />
 				</div>
 				<div>
 					<p className="font-display text-xl text-espresso">@{username}</p>
@@ -40,7 +30,7 @@ export default async function PublicProfilePage({
 				</div>
 				<button
 					type="button"
-					className="mt-1 inline-flex h-9 items-center justify-center rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-colors hover:bg-brioche/90"
+					className="mt-1 inline-flex h-9 items-center justify-center rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
 				>
 					Follow
 				</button>
@@ -67,7 +57,8 @@ export default async function PublicProfilePage({
 			{/* Taste Profile */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Taste Profile</h2>
-				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">
+				<div className="flex flex-col items-center gap-2 rounded-[16px] bg-parchment/50 py-12">
+					<ChartBar size={24} className="text-sesame" />
 					<p className="text-sm text-sesame">Taste profile coming soon</p>
 				</div>
 			</section>
@@ -75,7 +66,8 @@ export default async function PublicProfilePage({
 			{/* Top 5 */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Top 5</h2>
-				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-12">
+				<div className="flex flex-col items-center gap-2 rounded-[16px] bg-parchment/50 py-12">
+					<Trophy size={24} className="text-sesame" />
 					<p className="text-sm text-sesame">No top 5 yet</p>
 				</div>
 			</section>

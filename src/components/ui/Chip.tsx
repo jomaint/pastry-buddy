@@ -18,7 +18,7 @@ function Chip({ selected = false, onToggle, children, className }: ChipProps) {
 			aria-selected={selected}
 			onClick={onToggle}
 			className={clsx(
-				"inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium",
+				"inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium min-h-[44px]",
 				"border transition-colors duration-150 cursor-pointer",
 				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brioche/30",
 				selected

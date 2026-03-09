@@ -4,13 +4,11 @@ import Link from "next/link";
 
 export default function SignUpPage() {
 	return (
-		<div className="flex min-h-[80vh] items-center justify-center px-4">
-			<div className="w-full max-w-sm">
+		<div className="w-full px-4">
+			<div className="mx-auto w-full max-w-sm rounded-[16px] bg-flour p-8 shadow-sm">
 				<div className="flex flex-col gap-6">
 					<div className="text-center">
-						<h1 className="font-display text-3xl text-espresso">
-							Join Pastry Buddy
-						</h1>
+						<h1 className="font-display text-3xl text-espresso">Join Pastry Buddy</h1>
 						<p className="mt-2 text-sm text-sesame">
 							Start discovering and logging your favorite pastries
 						</p>
@@ -55,7 +53,7 @@ export default function SignUpPage() {
 
 						<button
 							type="submit"
-							className="mt-2 h-12 w-full rounded-[14px] bg-brioche text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
+							className="mt-2 h-11 w-full rounded-[14px] bg-brioche text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
 						>
 							Create Account
 						</button>

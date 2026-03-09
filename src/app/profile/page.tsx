@@ -1,6 +1,7 @@
 "use client";
 
 import { FavoritePastries } from "@/components/profile";
+import { Award, ChartBar, Trophy, User } from "lucide-react";
 import { useState } from "react";
 
 const stats = [
@@ -13,22 +14,11 @@ export default function ProfilePage() {
 	const [favorites, setFavorites] = useState<string[]>([]);
 
 	return (
-		<div className="flex flex-col gap-8 px-4 py-6">
+		<div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-6">
 			{/* Header */}
 			<div className="flex flex-col items-center gap-3 text-center">
 				<div className="flex h-20 w-20 items-center justify-center rounded-full bg-parchment">
-					<svg
-						width="28"
-						height="28"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						strokeWidth="1.5"
-						className="text-sesame"
-					>
-						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-						<circle cx="12" cy="7" r="4" />
-					</svg>
+					<User size={28} className="text-sesame" />
 				</div>
 				<div>
 					<p className="font-display text-xl text-espresso">@pastry_lover</p>
@@ -57,7 +47,8 @@ export default function ProfilePage() {
 			{/* Taste Profile */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Taste Profile</h2>
-				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">
+				<div className="flex flex-col items-center gap-2 rounded-[16px] bg-parchment/50 py-12">
+					<ChartBar size={24} className="text-sesame" />
 					<p className="text-sm text-sesame">Log more pastries to build your taste profile</p>
 				</div>
 			</section>
@@ -65,22 +56,17 @@ export default function ProfilePage() {
 			{/* Badges */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Badges</h2>
-				<div className="grid grid-cols-4 gap-3">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<div
-							key={i}
-							className="flex aspect-square items-center justify-center rounded-[12px] bg-parchment/50"
-						>
-							<div className="h-6 w-6 rounded-full bg-parchment" />
-						</div>
-					))}
+				<div className="flex flex-col items-center gap-2 rounded-[16px] bg-parchment/50 py-12">
+					<Award size={24} className="text-sesame" />
+					<p className="text-sm text-sesame">Start logging to earn your first badge</p>
 				</div>
 			</section>
 
 			{/* Top 5 */}
 			<section className="flex flex-col gap-3">
 				<h2 className="font-display text-xl text-espresso">Top 5</h2>
-				<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-12">
+				<div className="flex flex-col items-center gap-2 rounded-[16px] bg-parchment/50 py-12">
+					<Trophy size={24} className="text-sesame" />
 					<p className="text-sm text-sesame">Rate pastries to build your top 5</p>
 				</div>
 			</section>

@@ -1,13 +1,7 @@
 import clsx from "clsx";
 import type { HTMLAttributes } from "react";
 
-type BadgeVariant =
-	| "default"
-	| "brioche"
-	| "raspberry"
-	| "pistachio"
-	| "caramel"
-	| "blueberry";
+type BadgeVariant = "default" | "brioche" | "raspberry" | "pistachio" | "caramel" | "blueberry";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 	variant?: BadgeVariant;
@@ -15,11 +9,11 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const variantStyles: Record<BadgeVariant, string> = {
 	default: "bg-parchment text-espresso",
-	brioche: "bg-brioche/15 text-brioche",
-	raspberry: "bg-raspberry/15 text-raspberry",
-	pistachio: "bg-pistachio/15 text-pistachio",
-	caramel: "bg-caramel/15 text-caramel",
-	blueberry: "bg-blueberry/15 text-blueberry",
+	brioche: "bg-brioche/20 text-brioche",
+	raspberry: "bg-raspberry/20 text-raspberry",
+	pistachio: "bg-pistachio/20 text-pistachio",
+	caramel: "bg-caramel/20 text-caramel",
+	blueberry: "bg-blueberry/20 text-blueberry",
 };
 
 function Badge({ variant = "default", className, children, ...props }: BadgeProps) {

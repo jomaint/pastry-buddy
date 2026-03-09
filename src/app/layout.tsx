@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
-import { DM_Serif_Display, DM_Sans } from "next/font/google";
 import { Shell } from "@/components/layout";
+import type { Metadata } from "next";
+import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" className={`${dmSerifDisplay.variable} ${dmSans.variable}`}>
-			<body className="font-body bg-creme text-espresso antialiased">
+			<body>
 				<Shell>{children}</Shell>
 			</body>
 		</html>

@@ -14,8 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
 	primary: "bg-brioche text-flour hover:bg-brioche/90 active:bg-brioche/80",
-	secondary:
-		"bg-parchment text-espresso hover:bg-parchment/80 active:bg-parchment/70",
+	secondary: "bg-parchment text-espresso hover:bg-parchment/80 active:bg-parchment/70",
 	ghost: "bg-transparent text-espresso hover:bg-parchment active:bg-parchment/80",
 };
 
@@ -26,18 +25,15 @@ const sizeStyles: Record<ButtonSize, string> = {
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-	(
-		{ variant = "primary", size = "md", className, disabled, children, ...props },
-		ref,
-	) => {
+	({ variant = "primary", size = "md", className, disabled, children, ...props }, ref) => {
 		return (
 			<button
 				ref={ref}
 				disabled={disabled}
 				className={clsx(
 					"inline-flex items-center justify-center rounded-[14px] font-medium transition-colors duration-150",
-					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brioche/30",
-					"disabled:pointer-events-none disabled:opacity-50",
+					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brioche/30 focus-visible:ring-offset-2",
+					"disabled:opacity-50 disabled:cursor-not-allowed",
 					variantStyles[variant],
 					sizeStyles[size],
 					className,

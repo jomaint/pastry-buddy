@@ -1,9 +1,9 @@
 "use client";
 
-import { Home, Search, PlusCircle, Bookmark, User } from "lucide-react";
+import clsx from "clsx";
+import { Bookmark, Home, PlusCircle, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import clsx from "clsx";
 
 const icons = { Home, Search, PlusCircle, Bookmark, User } as const;
 
@@ -26,10 +26,7 @@ export function BottomNav() {
 			>
 				{items.map((item) => {
 					const Icon = icons[item.icon];
-					const isActive =
-						item.href === "/"
-							? pathname === "/"
-							: pathname.startsWith(item.href);
+					const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 					const isLog = item.icon === "PlusCircle";
 
 					if (isLog) {
@@ -37,14 +34,22 @@ export function BottomNav() {
 							<Link
 								key={item.href}
 								href={item.href}
-								className="flex flex-col items-center gap-0.5 -mt-3"
+								className={clsx(
+									"flex flex-col items-center gap-0.5 -mt-5 group",
+									"focus-visible:outline-none",
+								)}
 							>
-								<span className="flex items-center justify-center w-12 h-12 rounded-full bg-brioche text-flour shadow-sm">
+								<span
+									className={clsx(
+										"flex items-center justify-center w-12 h-12 rounded-full bg-brioche text-flour",
+										"shadow-[0_2px_8px_rgba(200,135,95,0.4),0_4px_16px_rgba(200,135,95,0.2)]",
+										"transition-transform duration-150 hover:scale-105 active:scale-95",
+										"group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-brioche group-focus-visible:outline",
+									)}
+								>
 									<Icon size={24} strokeWidth={2} />
 								</span>
-								<span className="text-[10px] font-medium text-brioche">
-									{item.label}
-								</span>
+								<span className="text-[10px] font-medium text-brioche">{item.label}</span>
 							</Link>
 						);
 					}
@@ -55,7 +60,8 @@ export function BottomNav() {
 							href={item.href}
 							className={clsx(
 								"flex flex-col items-center gap-0.5 py-1 min-w-[48px] transition-colors duration-150",
-								isActive ? "text-brioche" : "text-sesame",
+								"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche focus-visible:rounded-lg",
+								isActive ? "text-brioche" : "text-sesame hover:text-ganache",
 							)}
 						>
 							<Icon size={20} strokeWidth={isActive ? 2.25 : 1.75} />

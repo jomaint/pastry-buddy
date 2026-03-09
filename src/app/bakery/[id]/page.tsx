@@ -1,5 +1,5 @@
 import { getBakery, getPastriesByBakery } from "@/lib/mock-data";
-import { ExternalLink, MapPin, Star } from "lucide-react";
+import { ExternalLink, MapPin, Star, Store } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,13 +16,16 @@ export default async function BakeryDetailPage({
 	const pastries = getPastriesByBakery(bakery.id);
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="mx-auto max-w-2xl">
 			{/* Hero placeholder */}
 			<div className="relative aspect-[16/9] w-full bg-parchment">
+				<div className="absolute inset-0 flex items-center justify-center">
+					<Store size={48} className="text-sesame/40" />
+				</div>
 				<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-espresso/30 to-transparent" />
 			</div>
 
-			<div className="flex flex-col gap-6 px-4 pb-8">
+			<div className="flex flex-col gap-6 px-4 pb-8 pt-6">
 				{/* Name & address */}
 				<div>
 					<h1 className="font-display text-2xl text-espresso">{bakery.name}</h1>
@@ -40,7 +43,7 @@ export default async function BakeryDetailPage({
 						href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${bakery.name} ${bakery.address} ${bakery.city}`)}`}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90"
+						className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
 					>
 						<ExternalLink size={16} />
 						Get Directions
