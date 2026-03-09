@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
+import { ListCardSkeleton } from "@/components/ui/Skeleton";
+import { useTrackEvent } from "@/hooks/use-track-event";
 import {
 	ArrowLeft,
 	Bookmark,
@@ -19,12 +21,17 @@ import {
 	X,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function ListsPage() {
 	const { data: lists, isLoading } = useLists();
 	const [selectedListId, setSelectedListId] = useState<string | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
+	const trackEvent = useTrackEvent();
+
+	useEffect(() => {
+		trackEvent("page_view", { pagePath: "/lists" });
+	}, [trackEvent]);
 
 	if (selectedListId) {
 		return <ListDetailView listId={selectedListId} onBack={() => setSelectedListId(null)} />;
@@ -41,8 +48,10 @@ export default function ListsPage() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex items-center justify-center py-16">
-					<Loader2 size={20} className="animate-spin text-sesame" />
+				<div className="flex flex-col gap-2">
+					{[1, 2, 3].map((i) => (
+						<ListCardSkeleton key={i} />
+					))}
 				</div>
 			) : lists && lists.length > 0 ? (
 				<div className="flex flex-col gap-2">
@@ -207,12 +216,18 @@ function CreateListModal({ onClose }: { onClose: () => void }) {
 	const [description, setDescription] = useState("");
 	const [isPublic, setIsPublic] = useState(true);
 	const createList = useCreateList();
+	const trackEvent = useTrackEvent();
 
 	const handleCreate = () => {
 		if (!name.trim()) return;
 		createList.mutate(
 			{ name: name.trim(), description: description.trim() || undefined, is_public: isPublic },
-			{ onSuccess: onClose },
+			{
+				onSuccess: () => {
+					trackEvent("list_created", { properties: { name: name.trim(), is_public: isPublic } });
+					onClose();
+				},
+			},
 		);
 	};
 
@@ -239,8 +254,11 @@ function CreateListModal({ onClose }: { onClose: () => void }) {
 					/>
 
 					<div className="flex flex-col gap-1.5">
-						<label className="text-sm font-medium text-espresso">Description</label>
+						<label htmlFor="list-description" className="text-sm font-medium text-espresso">
+							Description
+						</label>
 						<textarea
+							id="list-description"
 							placeholder="What's this list about?"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
@@ -260,7 +278,15 @@ function CreateListModal({ onClose }: { onClose: () => void }) {
 							}`}
 						>
 							{isPublic && (
-								<svg width="10" height="8" viewBox="0 0 10 8" fill="none" className="text-flour">
+								<svg
+									width="10"
+									height="8"
+									viewBox="0 0 10 8"
+									fill="none"
+									className="text-flour"
+									aria-hidden="true"
+									role="img"
+								>
 									<path
 										d="M1 4L3.5 6.5L9 1"
 										stroke="currentColor"

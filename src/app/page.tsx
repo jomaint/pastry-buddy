@@ -3,26 +3,29 @@
 import { useBakeries } from "@/api/bakeries";
 import { useFeed } from "@/api/check-ins";
 import { useTrendingPastries } from "@/api/pastries";
+import { usePersonalizedFeed } from "@/api/recommendations";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
-import { Camera, Croissant, Loader2, MapPin, Star } from "lucide-react";
+import { FeedCardSkeleton, PastryCardSkeleton } from "@/components/ui/Skeleton";
+import { TasteMatchPill } from "@/components/ui/TasteMatchPill";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { timeAgo } from "@/lib/time-utils";
+import { Camera, Croissant, MapPin, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
-
-function timeAgo(dateStr: string) {
-	const diff = Date.now() - new Date(dateStr).getTime();
-	const hours = Math.floor(diff / 3600000);
-	if (hours < 1) return "just now";
-	if (hours < 24) return `${hours}h ago`;
-	const days = Math.floor(hours / 24);
-	return `${days}d ago`;
-}
+import { useEffect } from "react";
 
 export default function FeedPage() {
 	const { data: trending, isLoading: trendingLoading } = useTrendingPastries(6);
 	const { data: feed, isLoading: feedLoading } = useFeed();
 	const { data: allBakeries } = useBakeries();
+	const { data: forYou } = usePersonalizedFeed(6);
+	const trackEvent = useTrackEvent();
+
+	useEffect(() => {
+		trackEvent("page_view", { pagePath: "/" });
+	}, [trackEvent]);
 
 	const getBakeryName = (bakeryId: string) => {
 		return allBakeries?.find((b) => b.id === bakeryId)?.name ?? "";
@@ -37,8 +40,12 @@ export default function FeedPage() {
 				</p>
 				<div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
 					{trendingLoading ? (
-						<div className="flex w-full items-center justify-center py-8">
-							<Loader2 size={20} className="animate-spin text-sesame" />
+						<div className="flex gap-3">
+							{[1, 2, 3].map((i) => (
+								<div key={i} className="w-40 shrink-0">
+									<PastryCardSkeleton />
+								</div>
+							))}
 						</div>
 					) : (
 						trending?.map((pastry) => (
@@ -52,14 +59,17 @@ export default function FeedPage() {
 								</div>
 								<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 								<p className="truncate text-xs text-sesame">{getBakeryName(pastry.bakery_id)}</p>
-								<div className="flex items-center gap-1">
-									<Star size={12} className="fill-caramel text-caramel" />
-									<span className="text-xs font-medium text-espresso tabular-nums">
-										{pastry.avg_rating}
-									</span>
-									<span className="text-xs text-sesame tabular-nums">
-										· {pastry.total_checkins}
-									</span>
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-1">
+										<Star size={12} className="fill-caramel text-caramel" />
+										<span className="text-xs font-medium text-espresso tabular-nums">
+											{pastry.avg_rating}
+										</span>
+										<span className="text-xs text-sesame tabular-nums">
+											· {pastry.total_checkins}
+										</span>
+									</div>
+									<TasteMatchPill category={pastry.category} />
 								</div>
 							</Link>
 						))
@@ -67,21 +77,74 @@ export default function FeedPage() {
 				</div>
 			</section>
 
+			{/* For You — personalized recommendations */}
+			{forYou && forYou.length > 0 && (
+				<section>
+					<div className="mb-3 flex items-center gap-1.5">
+						<Sparkles size={14} className="text-brioche" />
+						<p className="text-xs font-medium uppercase tracking-wide text-sesame">For You</p>
+					</div>
+					<div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
+						{forYou.map((rec) => (
+							<Link
+								key={rec.pastry_id}
+								href={`/pastry/${rec.pastry_id}`}
+								onClick={() =>
+									trackEvent("recommendation_clicked", {
+										properties: {
+											pastry_id: rec.pastry_id,
+											reason: rec.reason,
+											source: "home_for_you",
+										},
+									})
+								}
+								className="flex w-44 shrink-0 flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98]"
+							>
+								<div className="flex aspect-square w-full items-center justify-center rounded-[12px] bg-parchment">
+									<Croissant size={28} className="text-brioche/30" />
+								</div>
+								<p className="truncate text-sm font-medium text-espresso">{rec.pastry_name}</p>
+								<p className="truncate text-xs text-sesame">{rec.bakery_name}</p>
+								<p className="text-[11px] text-brioche/70 truncate">{rec.reason}</p>
+								<div className="flex items-center justify-between">
+									{rec.avg_rating && (
+										<div className="flex items-center gap-1">
+											<Star size={12} className="fill-caramel text-caramel" />
+											<span className="text-xs font-medium text-espresso tabular-nums">
+												{rec.avg_rating}
+											</span>
+										</div>
+									)}
+									<TasteMatchPill category={rec.pastry_category} />
+								</div>
+							</Link>
+						))}
+					</div>
+				</section>
+			)}
+
 			{/* Feed */}
 			<section className="flex flex-col gap-4">
 				<h1 className="font-display text-2xl text-espresso">Your Feed</h1>
 				{feedLoading ? (
-					<div className="flex items-center justify-center py-12">
-						<Loader2 size={20} className="animate-spin text-sesame" />
+					<div className="flex flex-col gap-4">
+						{[1, 2, 3].map((i) => (
+							<FeedCardSkeleton key={i} />
+						))}
 					</div>
 				) : !feed || feed.length === 0 ? (
-					<div className="flex flex-col items-center justify-center rounded-[16px] bg-parchment/50 py-12 text-center">
-						<p className="text-sm text-sesame">No check-ins yet. Be the first to log a pastry!</p>
+					<div className="flex flex-col items-center justify-center rounded-[16px] bg-parchment/50 py-16 text-center">
+						<span className="text-4xl mb-3">🥐</span>
+						<p className="font-display text-lg text-espresso">Your feed is hungry</p>
+						<p className="mt-1 max-w-[240px] text-sm text-sesame">
+							Log your first pastry and follow friends to fill up your feed
+						</p>
 						<Link
 							href="/log"
-							className="mt-4 inline-flex h-10 items-center justify-center rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-colors hover:bg-brioche/90"
+							className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-all duration-150 hover:bg-brioche/90 active:scale-[0.97]"
 						>
-							Log a pastry
+							<Croissant size={14} />
+							Log your first pastry
 						</Link>
 					</div>
 				) : (

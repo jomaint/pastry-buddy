@@ -3,6 +3,7 @@
 import { useSignUp } from "@/api/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useTrackEvent } from "@/hooks/use-track-event";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +24,7 @@ type SignUpForm = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
 	const signUp = useSignUp();
+	const trackEvent = useTrackEvent();
 
 	const {
 		register,
@@ -33,7 +35,9 @@ export default function SignUpPage() {
 	});
 
 	const onSubmit = (data: SignUpForm) => {
-		signUp.mutate(data);
+		signUp.mutate(data, {
+			onSuccess: () => trackEvent("sign_up"),
+		});
 	};
 
 	return (

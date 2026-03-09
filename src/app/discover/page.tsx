@@ -2,11 +2,15 @@
 
 import { useBakeries, useSearchBakeries } from "@/api/bakeries";
 import { usePastries, useSearchPastries, useTrendingPastries } from "@/api/pastries";
+import { useRecommendedBakeries } from "@/api/recommendations";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
+import { PastryCardSkeleton } from "@/components/ui/Skeleton";
+import { TasteMatchPill } from "@/components/ui/TasteMatchPill";
 import { PASTRY_CATEGORIES } from "@/config/pastry-categories";
-import { Croissant, Loader2, MapPin, Search, Star } from "lucide-react";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { Croissant, MapPin, Search, Sparkles, Star, Store } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function DiscoverPage() {
 	const [query, setQuery] = useState("");
@@ -16,9 +20,25 @@ export default function DiscoverPage() {
 	const { data: allBakeries } = useBakeries();
 	const { data: searchedPastries } = useSearchPastries(query);
 	const { data: searchedBakeries } = useSearchBakeries(query);
+	const { data: recommendedBakeries } = useRecommendedBakeries(4);
 	const { data: categoryPastries } = usePastries(
 		activeCategory ? { category: activeCategory, sort: "checkins", limit: 50 } : undefined,
 	);
+
+	const trackEvent = useTrackEvent();
+	const searchTracked = useRef("");
+
+	useEffect(() => {
+		trackEvent("page_view", { pagePath: "/discover" });
+	}, [trackEvent]);
+
+	// Track search when results appear
+	useEffect(() => {
+		if (query.length >= 2 && query !== searchTracked.current) {
+			searchTracked.current = query;
+			trackEvent("search_performed", { properties: { query, page: "discover" } });
+		}
+	}, [query, trackEvent]);
 
 	const getBakeryName = (bakeryId: string) => {
 		return allBakeries?.find((b) => b.id === bakeryId)?.name ?? "";
@@ -152,14 +172,17 @@ export default function DiscoverPage() {
 									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 									<p className="truncate text-xs text-sesame">{getBakeryName(pastry.bakery_id)}</p>
 									{pastry.avg_rating && (
-										<div className="flex items-center gap-1">
-											<Star size={12} className="fill-caramel text-caramel" />
-											<span className="text-xs font-medium text-espresso tabular-nums">
-												{pastry.avg_rating}
-											</span>
-											<span className="text-xs text-sesame tabular-nums">
-												· {pastry.total_checkins}
-											</span>
+										<div className="flex items-center justify-between">
+											<div className="flex items-center gap-1">
+												<Star size={12} className="fill-caramel text-caramel" />
+												<span className="text-xs font-medium text-espresso tabular-nums">
+													{pastry.avg_rating}
+												</span>
+												<span className="text-xs text-sesame tabular-nums">
+													· {pastry.total_checkins}
+												</span>
+											</div>
+											<TasteMatchPill category={pastry.category} />
 										</div>
 									)}
 								</Link>
@@ -176,8 +199,10 @@ export default function DiscoverPage() {
 					<section className="flex flex-col gap-3">
 						<h2 className="font-display text-xl text-espresso">Trending Near You</h2>
 						{trendingLoading ? (
-							<div className="flex items-center justify-center py-12">
-								<Loader2 size={20} className="animate-spin text-sesame" />
+							<div className="grid grid-cols-2 gap-3">
+								{[1, 2, 3, 4].map((i) => (
+									<PastryCardSkeleton key={i} />
+								))}
 							</div>
 						) : (
 							<StaggerContainer className="grid grid-cols-2 gap-3">
@@ -194,14 +219,17 @@ export default function DiscoverPage() {
 											<p className="truncate text-xs text-sesame">
 												{getBakeryName(pastry.bakery_id)}
 											</p>
-											<div className="flex items-center gap-1">
-												<Star size={12} className="fill-caramel text-caramel" />
-												<span className="text-xs font-medium text-espresso tabular-nums">
-													{pastry.avg_rating}
-												</span>
-												<span className="text-xs text-sesame tabular-nums">
-													· {pastry.total_checkins}
-												</span>
+											<div className="flex items-center justify-between">
+												<div className="flex items-center gap-1">
+													<Star size={12} className="fill-caramel text-caramel" />
+													<span className="text-xs font-medium text-espresso tabular-nums">
+														{pastry.avg_rating}
+													</span>
+													<span className="text-xs text-sesame tabular-nums">
+														· {pastry.total_checkins}
+													</span>
+												</div>
+												<TasteMatchPill category={pastry.category} />
 											</div>
 										</Link>
 									</StaggerItem>
@@ -209,6 +237,49 @@ export default function DiscoverPage() {
 							</StaggerContainer>
 						)}
 					</section>
+
+					{/* Recommended bakeries */}
+					{recommendedBakeries && recommendedBakeries.length > 0 && (
+						<section className="flex flex-col gap-3">
+							<div className="flex items-center gap-1.5">
+								<Sparkles size={14} className="text-brioche" />
+								<h2 className="font-display text-xl text-espresso">Recommended for You</h2>
+							</div>
+							<StaggerContainer className="flex flex-col gap-2">
+								{recommendedBakeries.map((bakery) => (
+									<StaggerItem key={bakery.bakery_id}>
+										<Link
+											href={`/bakery/${bakery.bakery_id}`}
+											className="flex items-center gap-3 rounded-[16px] bg-flour p-3 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+										>
+											<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brioche/10">
+												<Store size={16} className="text-brioche" />
+											</div>
+											<div className="min-w-0 flex-1">
+												<p className="truncate text-sm font-medium text-espresso">
+													{bakery.bakery_name}
+												</p>
+												<p className="truncate text-xs text-sesame">
+													{bakery.bakery_city} · {bakery.pastry_count} pastries
+												</p>
+												<p className="truncate text-[11px] text-brioche/70 mt-0.5">
+													{bakery.reason}
+												</p>
+											</div>
+											{bakery.avg_bakery_rating && (
+												<div className="flex shrink-0 items-center gap-1">
+													<Star size={12} className="fill-caramel text-caramel" />
+													<span className="text-xs font-medium text-espresso tabular-nums">
+														{bakery.avg_bakery_rating.toFixed(1)}
+													</span>
+												</div>
+											)}
+										</Link>
+									</StaggerItem>
+								))}
+							</StaggerContainer>
+						</section>
+					)}
 
 					{/* Popular Bakeries */}
 					<section className="flex flex-col gap-3">

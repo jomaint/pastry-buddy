@@ -5,21 +5,12 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { timeAgo } from "@/lib/time-utils";
 import { Camera, Heart, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { use } from "react";
-
-function timeAgo(dateStr: string) {
-	const diff = Date.now() - new Date(dateStr).getTime();
-	const mins = Math.floor(diff / 60000);
-	if (mins < 1) return "just now";
-	if (mins < 60) return `${mins}m ago`;
-	const hours = Math.floor(mins / 60);
-	if (hours < 24) return `${hours}h ago`;
-	const days = Math.floor(hours / 24);
-	return `${days}d ago`;
-}
+import { use, useEffect } from "react";
 
 export default function CheckInDetailPage({
 	params,
@@ -28,6 +19,14 @@ export default function CheckInDetailPage({
 }) {
 	const { id } = use(params);
 	const { data: checkin, isLoading, error } = useCheckIn(id);
+	const trackEvent = useTrackEvent();
+
+	useEffect(() => {
+		if (checkin) {
+			trackEvent("page_view", { properties: { check_in_id: id }, pagePath: `/check-in/${id}` });
+		}
+		// eslint-disable-next-line -- track once when checkin loads; id/trackEvent are stable
+	}, [checkin, id, trackEvent]);
 
 	if (isLoading) {
 		return (

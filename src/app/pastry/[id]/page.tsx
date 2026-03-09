@@ -1,12 +1,46 @@
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { PastryCheckIns } from "@/components/pastry/PastryCheckIns";
 import { SaveToListButton } from "@/components/pastry/SaveToListButton";
+import { SimilarPastries } from "@/components/pastry/SimilarPastries";
 import { Badge } from "@/components/ui/Badge";
 import { Rating } from "@/components/ui/Rating";
 import { createClient } from "@/lib/supabase/server";
 import type { Bakery, Pastry } from "@/types/database";
 import { Heart, UtensilsCrossed } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+	const { id } = await params;
+	const supabase = await createClient();
+	const { data: pastry } = await supabase
+		.from("pastries")
+		.select("name, category, description, avg_rating")
+		.eq("id", id)
+		.single();
+
+	if (!pastry) return { title: "Pastry not found" };
+
+	const p = pastry as {
+		name: string;
+		category: string;
+		description: string | null;
+		avg_rating: number | null;
+	};
+	return {
+		title: p.name,
+		description: p.description ?? `${p.name} — a ${p.category} pastry on Pastry Buddy`,
+		openGraph: {
+			title: `${p.name} | Pastry Buddy`,
+			description: p.description ?? `Rated ${p.avg_rating ?? "N/A"}/5 — ${p.category}`,
+		},
+	};
+}
 
 export default async function PastryDetailPage({
 	params,
@@ -39,6 +73,10 @@ export default async function PastryDetailPage({
 
 	return (
 		<div className="mx-auto max-w-2xl">
+			<PageViewTracker
+				event="pastry_viewed"
+				properties={{ pastry_id: typedPastry.id, pastry_name: typedPastry.name }}
+			/>
 			{/* Hero image placeholder */}
 			<div className="relative aspect-[4/5] w-full bg-parchment">
 				<div className="absolute inset-0 flex items-center justify-center">
@@ -96,6 +134,9 @@ export default async function PastryDetailPage({
 
 				{/* Recent check-ins */}
 				<PastryCheckIns pastryId={typedPastry.id} />
+
+				{/* Similar pastries */}
+				<SimilarPastries pastryId={typedPastry.id} />
 			</div>
 		</div>
 	);

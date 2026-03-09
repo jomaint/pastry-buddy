@@ -17,8 +17,20 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-	title: "Pastry Buddy",
+	title: {
+		default: "Pastry Buddy",
+		template: "%s | Pastry Buddy",
+	},
 	description: "Discover, log, and rank your favorite pastries",
+	manifest: "/manifest.json",
+	appleWebApp: {
+		capable: true,
+		statusBarStyle: "default",
+		title: "Pastry Buddy",
+	},
+	other: {
+		"mobile-web-app-capable": "yes",
+	},
 };
 
 export default function RootLayout({

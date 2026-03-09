@@ -1,10 +1,15 @@
 "use client";
 
+import { useAuth } from "@/api/auth";
 import { useBakeries, useSearchBakeries } from "@/api/bakeries";
 import { useCreateCheckIn } from "@/api/check-ins";
 import { usePastries } from "@/api/pastries";
+import { Confetti } from "@/components/ui/Confetti";
+import { useToast } from "@/components/ui/Toast";
+import { getContextualFlavors } from "@/config/contextual-flavors";
 import { FLAVOR_TAGS, TEXTURE_TAGS } from "@/config/pastry-categories";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useTrackEvent } from "@/hooks/use-track-event";
 import type { PlaceResult } from "@/lib/place-search";
 import { searchPlaces } from "@/lib/place-search";
 import type { Bakery, Pastry } from "@/types/database";
@@ -47,6 +52,16 @@ export default function LogPage() {
 	const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
 	const [selectedTextures, setSelectedTextures] = useState<string[]>([]);
 	const [notes, setNotes] = useState("");
+
+	// Confetti and toast
+	const [showConfetti, setShowConfetti] = useState(false);
+	const toast = useToast();
+	const { data: auth } = useAuth();
+	const trackEvent = useTrackEvent();
+
+	useEffect(() => {
+		trackEvent("page_view", { pagePath: "/log" });
+	}, [trackEvent]);
 
 	// Supabase hooks
 	const { data: popularBakeries } = useBakeries();
@@ -204,7 +219,52 @@ export default function LogPage() {
 				flavor_tags: [...selectedFlavors, ...selectedTextures],
 			},
 			{
-				onSuccess: () => setStep("done"),
+				onSuccess: () => {
+					trackEvent("check_in_created", {
+						properties: {
+							pastry_id: selectedPastry?.id,
+							bakery_id: selectedBakery?.id,
+							rating,
+							flavor_tags: [...selectedFlavors, ...selectedTextures],
+						},
+					});
+					setStep("done");
+					setShowConfetti(true);
+					setTimeout(() => setShowConfetti(false), 3000);
+
+					// Milestone toasts
+					const totalCheckins = (auth?.user?.total_checkins ?? 0) + 1;
+					if (totalCheckins === 1) {
+						toast.show({
+							type: "badge",
+							title: "First Bite! 🧁",
+							description: "You earned your first badge",
+							icon: "🏆",
+						});
+					} else if (totalCheckins === 10) {
+						toast.show({
+							type: "badge",
+							title: "Regular! 🍰",
+							description: "10 pastries logged — you're a regular now",
+							icon: "🏅",
+						});
+					} else if (totalCheckins === 50) {
+						toast.show({
+							type: "badge",
+							title: "Connoisseur! 🎂",
+							description: "50 pastries — true connoisseur status",
+							icon: "👑",
+						});
+					}
+
+					if (rating === 5) {
+						toast.show({
+							type: "success",
+							title: "A perfect 5! ⭐",
+							description: "This one must be incredible",
+						});
+					}
+				},
 			},
 		);
 	}, [
@@ -215,6 +275,9 @@ export default function LogPage() {
 		selectedFlavors,
 		selectedTextures,
 		createCheckIn,
+		auth?.user?.total_checkins,
+		toast,
+		trackEvent,
 	]);
 
 	const handleReset = useCallback(() => {
@@ -249,6 +312,7 @@ export default function LogPage() {
 
 	return (
 		<div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6">
+			<Confetti active={showConfetti} />
 			{step !== "done" && (
 				<>
 					{/* Header */}
@@ -327,6 +391,7 @@ export default function LogPage() {
 								value={bakeryQuery}
 								onChange={(e) => setBakeryQuery(e.target.value)}
 								placeholder="Search bakeries & cafes..."
+								// biome-ignore lint/a11y/noAutofocus: intentional UX for step-based flow
 								autoFocus
 								className="h-11 w-full rounded-[12px] border border-parchment bg-flour pl-10 pr-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20"
 							/>
@@ -471,6 +536,7 @@ export default function LogPage() {
 								value={pastryQuery}
 								onChange={(e) => setPastryQuery(e.target.value)}
 								placeholder="Search pastries..."
+								// biome-ignore lint/a11y/noAutofocus: intentional UX for step-based flow
 								autoFocus
 								className="h-11 w-full rounded-[12px] border border-parchment bg-flour pl-10 pr-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20"
 							/>
@@ -567,26 +633,39 @@ export default function LogPage() {
 						<div className="flex flex-col items-center gap-2">
 							<p className="text-sm font-medium text-ganache">How was it?</p>
 							<div className="flex gap-1">
-								{[1, 2, 3, 4, 5].map((star) => (
-									<button
-										key={star}
-										type="button"
-										onClick={() => setRating(star)}
-										onMouseEnter={() => setHoverRating(star)}
-										onMouseLeave={() => setHoverRating(0)}
-										className="p-1 transition-transform hover:scale-110 active:scale-95"
-									>
-										<Star
-											size={28}
-											className={clsx(
-												"transition-colors",
-												star <= (hoverRating || rating)
-													? "fill-caramel text-caramel"
-													: "text-parchment",
-											)}
-										/>
-									</button>
-								))}
+								{[1, 2, 3, 4, 5].map((star) => {
+									const isFilled = star <= (hoverRating || rating);
+									const isNewlySelected = star === rating && star > 0;
+									return (
+										<motion.button
+											key={star}
+											type="button"
+											onClick={() => setRating(star)}
+											onMouseEnter={() => setHoverRating(star)}
+											onMouseLeave={() => setHoverRating(0)}
+											whileTap={{ scale: 0.85 }}
+											whileHover={{ scale: 1.15 }}
+											className="p-1"
+										>
+											<motion.div
+												animate={
+													isNewlySelected
+														? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] }
+														: { scale: 1 }
+												}
+												transition={{ duration: 0.3 }}
+											>
+												<Star
+													size={28}
+													className={clsx(
+														"transition-colors duration-150",
+														isFilled ? "fill-caramel text-caramel" : "text-parchment",
+													)}
+												/>
+											</motion.div>
+										</motion.button>
+									);
+								})}
 							</div>
 							{rating > 0 && (
 								<p className="text-xs text-sesame">
@@ -605,7 +684,7 @@ export default function LogPage() {
 								Flavors <span className="font-normal text-sesame">(up to 5)</span>
 							</p>
 							<div className="flex flex-wrap gap-1.5">
-								{FLAVOR_TAGS.map((tag) => (
+								{getContextualFlavors(FLAVOR_TAGS, selectedPastry?.category).map((tag) => (
 									<button
 										key={tag}
 										type="button"
@@ -711,7 +790,8 @@ export default function LogPage() {
 							</p>
 							<div className="flex items-center justify-center gap-0.5 pt-1">
 								{Array.from({ length: rating }).map((_, i) => (
-									<Star key={i} size={14} className="fill-caramel text-caramel" />
+									// biome-ignore lint/suspicious/noArrayIndexKey: static star icons
+									<Star key={`done-star-${i}`} size={14} className="fill-caramel text-caramel" />
 								))}
 							</div>
 							{(selectedFlavors.length > 0 || selectedTextures.length > 0) && (

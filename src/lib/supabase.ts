@@ -104,6 +104,23 @@ export type Database = {
 				};
 				Update: Partial<Omit<Follow, "id" | "created_at">>;
 			};
+			user_events: {
+				Row: {
+					id: string;
+					user_id: string | null;
+					event_name: string;
+					properties: Record<string, unknown>;
+					page_path: string | null;
+					created_at: string;
+				};
+				Insert: {
+					user_id?: string | null;
+					event_name: string;
+					properties?: Record<string, unknown>;
+					page_path?: string | null;
+				};
+				Update: never;
+			};
 		};
 		Views: {
 			feed_view: {

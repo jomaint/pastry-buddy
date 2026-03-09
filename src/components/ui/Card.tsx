@@ -14,7 +14,16 @@ const variantStyles: Record<CardVariant, string> = {
 
 function Card({ variant = "default", className, children, ...props }: CardProps) {
 	return (
-		<div className={clsx("rounded-[16px] p-4", variantStyles[variant], className)} {...props}>
+		<div
+			className={clsx(
+				"rounded-[16px] p-4 transition-all duration-200",
+				"hover:shadow-md hover:-translate-y-0.5",
+				"active:scale-[0.99] active:shadow-sm",
+				variantStyles[variant],
+				className,
+			)}
+			{...props}
+		>
 			{children}
 		</div>
 	);

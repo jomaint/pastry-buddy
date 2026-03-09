@@ -30,9 +30,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 				ref={ref}
 				disabled={disabled}
 				className={clsx(
-					"inline-flex items-center justify-center rounded-[14px] font-medium transition-colors duration-150",
+					"inline-flex items-center justify-center rounded-[14px] font-medium transition-all duration-150",
 					"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brioche/30 focus-visible:ring-offset-2",
-					"disabled:opacity-50 disabled:cursor-not-allowed",
+					"active:scale-[0.97]",
+					"disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
 					variantStyles[variant],
 					sizeStyles[size],
 					className,

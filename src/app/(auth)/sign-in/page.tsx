@@ -3,6 +3,7 @@
 import { useSignIn } from "@/api/auth";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useTrackEvent } from "@/hooks/use-track-event";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +19,7 @@ type SignInForm = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
 	const signIn = useSignIn();
+	const trackEvent = useTrackEvent();
 
 	const {
 		register,
@@ -28,7 +30,9 @@ export default function SignInPage() {
 	});
 
 	const onSubmit = (data: SignInForm) => {
-		signIn.mutate(data);
+		signIn.mutate(data, {
+			onSuccess: () => trackEvent("sign_in"),
+		});
 	};
 
 	return (

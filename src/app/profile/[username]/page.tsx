@@ -1,7 +1,8 @@
 "use client";
 
 import { useAuth } from "@/api/auth";
-import { useTasteProfile, useTopRatedPastries } from "@/api/check-ins";
+import { useBadgeStats, useTasteProfile, useTopRatedPastries } from "@/api/check-ins";
+import { useLists } from "@/api/lists";
 import {
 	useBakeriesVisited,
 	useFollow,
@@ -10,12 +11,17 @@ import {
 	useProfileByUsername,
 	useUnfollow,
 } from "@/api/profiles";
+import { useStreakRpc, useTasteSimilarity } from "@/api/social";
 import { FavoritePastries } from "@/components/profile";
+import { BadgeCard } from "@/components/profile/BadgeCard";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Rating } from "@/components/ui/Rating";
-import { BarChart3, Loader2, Trophy, User } from "lucide-react";
+import { BADGES } from "@/config/badges";
+import { useTrackEvent } from "@/hooks/use-track-event";
+import { evaluateBadges } from "@/lib/badge-utils";
+import { BarChart3, Flame, Heart, Loader2, Trophy, User } from "lucide-react";
 import Link from "next/link";
-import { use } from "react";
+import { use, useEffect, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 export default function PublicProfilePage({
@@ -31,10 +37,37 @@ export default function PublicProfilePage({
 	const { data: isFollowing } = useIsFollowing(profile?.id ?? "");
 	const { data: tasteProfile } = useTasteProfile(profile?.id);
 	const { data: topRated } = useTopRatedPastries(profile?.id);
+	const { data: streak } = useStreakRpc(profile?.id);
+	const { data: badgeStats } = useBadgeStats(profile?.id);
+	const { data: lists } = useLists();
+	const { data: tasteSimilarity } = useTasteSimilarity(auth?.user?.id, profile?.id);
 	const follow = useFollow();
 	const unfollow = useUnfollow();
+	const trackEvent = useTrackEvent();
+
+	useEffect(() => {
+		if (profile) {
+			trackEvent("profile_viewed", { properties: { username, profile_id: profile.id } });
+		}
+	}, [profile, username, trackEvent]);
 
 	const isOwnProfile = auth?.user?.id === profile?.id;
+
+	const badgeStatuses = useMemo(() => {
+		if (!profile) return [];
+		return evaluateBadges(BADGES, {
+			totalCheckins: profile.total_checkins,
+			bakeriesVisited: bakeriesVisited ?? 0,
+			followers: followCounts?.followers ?? 0,
+			following: followCounts?.following ?? 0,
+			listsCount: lists?.length ?? 0,
+			streak: streak ?? 0,
+			hasPerfectRating: badgeStats?.hasPerfectRating ?? false,
+			categoryCheckins: badgeStats?.categoryCheckins ?? {},
+		});
+	}, [profile, bakeriesVisited, followCounts, lists, streak, badgeStats]);
+
+	const unlockedBadges = badgeStatuses.filter((b) => b.unlocked);
 
 	if (isLoading) {
 		return (
@@ -64,8 +97,10 @@ export default function PublicProfilePage({
 	const handleFollowToggle = () => {
 		if (isFollowing) {
 			unfollow.mutate(profile.id);
+			trackEvent("unfollow", { properties: { target_user_id: profile.id } });
 		} else {
 			follow.mutate(profile.id);
+			trackEvent("follow", { properties: { target_user_id: profile.id } });
 		}
 	};
 
@@ -81,6 +116,26 @@ export default function PublicProfilePage({
 					<p className="mt-0.5 text-sm text-sesame">{profile.bio || "Curious Nibbler"}</p>
 					<p className="mt-1 text-xs text-sesame/70">Level {profile.level}</p>
 				</div>
+				{/* Taste similarity — Beli-style differentiator */}
+				{!isOwnProfile && auth?.isAuthenticated && tasteSimilarity != null && (
+					<div className="inline-flex items-center gap-1.5 rounded-full bg-pistachio/10 px-3.5 py-1.5">
+						<Heart size={13} className="fill-pistachio text-pistachio" />
+						<span className="text-sm font-semibold text-pistachio tabular-nums">
+							{tasteSimilarity}% taste match
+						</span>
+					</div>
+				)}
+				{!isOwnProfile && auth?.isAuthenticated && tasteSimilarity === null && (
+					<p className="text-[11px] text-sesame">Check in more to see your taste match</p>
+				)}
+				{(streak ?? 0) > 0 && (
+					<div className="inline-flex items-center gap-1.5 rounded-full bg-raspberry/10 px-3 py-1.5">
+						<Flame size={14} className="text-raspberry" />
+						<span className="text-sm font-medium text-raspberry tabular-nums">
+							{streak}-day streak
+						</span>
+					</div>
+				)}
 				{!isOwnProfile && auth?.isAuthenticated && (
 					<button
 						type="button"
@@ -183,6 +238,18 @@ export default function PublicProfilePage({
 					</div>
 				)}
 			</section>
+
+			{/* Badges (show earned only on public profiles) */}
+			{unlockedBadges.length > 0 && (
+				<section className="flex flex-col gap-3">
+					<h2 className="font-display text-xl text-espresso">Badges</h2>
+					<div className="grid grid-cols-3 gap-2">
+						{unlockedBadges.map((status) => (
+							<BadgeCard key={status.badge.name} badge={status.badge} unlocked />
+						))}
+					</div>
+				</section>
+			)}
 		</PageTransition>
 	);
 }

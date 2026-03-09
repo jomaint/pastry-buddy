@@ -803,8 +803,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p036")!,
-		bakery: BAKERIES.find((b) => b.id === "b008")!,
+		pastry: PASTRIES.find((p) => p.id === "p036") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b008") as (typeof BAKERIES)[number],
 	},
 	{
 		id: "c002",
@@ -830,8 +830,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p001")!,
-		bakery: BAKERIES.find((b) => b.id === "b001")!,
+		pastry: PASTRIES.find((p) => p.id === "p001") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b001") as (typeof BAKERIES)[number],
 	},
 	{
 		id: "c003",
@@ -857,8 +857,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p059")!,
-		bakery: BAKERIES.find((b) => b.id === "b012")!,
+		pastry: PASTRIES.find((p) => p.id === "p059") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b012") as (typeof BAKERIES)[number],
 	},
 	{
 		id: "c004",
@@ -884,8 +884,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p053")!,
-		bakery: BAKERIES.find((b) => b.id === "b010")!,
+		pastry: PASTRIES.find((p) => p.id === "p053") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b010") as (typeof BAKERIES)[number],
 	},
 	{
 		id: "c005",
@@ -912,8 +912,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p070")!,
-		bakery: BAKERIES.find((b) => b.id === "b015")!,
+		pastry: PASTRIES.find((p) => p.id === "p070") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b015") as (typeof BAKERIES)[number],
 	},
 	{
 		id: "c006",
@@ -939,8 +939,8 @@ export const MOCK_CHECKINS: (CheckIn & { user: Profile; pastry: Pastry; bakery: 
 			created_at: "",
 			updated_at: "",
 		},
-		pastry: PASTRIES.find((p) => p.id === "p025")!,
-		bakery: BAKERIES.find((b) => b.id === "b005")!,
+		pastry: PASTRIES.find((p) => p.id === "p025") as (typeof PASTRIES)[number],
+		bakery: BAKERIES.find((b) => b.id === "b005") as (typeof BAKERIES)[number],
 	},
 ];
 

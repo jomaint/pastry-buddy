@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { Star } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 type RatingSize = "sm" | "md" | "lg";
 
@@ -37,10 +37,14 @@ function Rating({
 }: RatingProps) {
 	const interactive = !readonly && !!onChange;
 	const iconSize = sizeMap[size];
+	const [tappedIndex, setTappedIndex] = useState<number | null>(null);
 
 	const handleClick = useCallback(
 		(index: number) => {
-			if (interactive) onChange(index + 1);
+			if (!interactive) return;
+			onChange(index + 1);
+			setTappedIndex(index);
+			setTimeout(() => setTappedIndex(null), 300);
 		},
 		[interactive, onChange],
 	);
@@ -53,22 +57,30 @@ function Rating({
 		>
 			{Array.from({ length: max }, (_, i) => {
 				const filled = i < value;
+				const isTapped = tappedIndex === i;
 				return (
 					<button
-						key={i}
+						key={`star-${i}`}
 						type="button"
 						disabled={!interactive}
 						onClick={() => handleClick(i)}
 						className={clsx(
-							"inline-flex items-center justify-center p-0 border-0 bg-transparent transition-colors duration-150",
-							interactive && "cursor-pointer hover:scale-110",
+							"inline-flex items-center justify-center p-0 border-0 bg-transparent transition-all duration-150",
+							interactive && "cursor-pointer hover:scale-110 active:scale-90",
 							!interactive && "cursor-default",
+							isTapped && "scale-125",
 						)}
+						style={{
+							transitionDelay: interactive ? `${i * 30}ms` : "0ms",
+						}}
 						aria-label={`${i + 1} star${i + 1 > 1 ? "s" : ""}`}
 					>
 						<Star
 							size={iconSize}
-							className={clsx(filled ? "fill-caramel text-caramel" : "fill-none text-sesame")}
+							className={clsx(
+								"transition-colors duration-150",
+								filled ? "fill-caramel text-caramel" : "fill-none text-sesame",
+							)}
 						/>
 					</button>
 				);

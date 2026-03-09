@@ -1,9 +1,37 @@
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { BakeryMap } from "@/components/ui/Map";
 import { createClient } from "@/lib/supabase/server";
 import type { Bakery, Pastry } from "@/types/database";
 import { Croissant, ExternalLink, MapPin, Star, Store } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+	const { id } = await params;
+	const supabase = await createClient();
+	const { data: bakery } = await supabase
+		.from("bakeries")
+		.select("name, city, address")
+		.eq("id", id)
+		.single();
+
+	if (!bakery) return { title: "Bakery not found" };
+
+	const b = bakery as { name: string; city: string | null; address: string | null };
+	return {
+		title: b.name,
+		description: `${b.name} in ${b.city ?? "unknown"} — discover their pastries on Pastry Buddy`,
+		openGraph: {
+			title: `${b.name} | Pastry Buddy`,
+			description: `${b.address ?? ""}, ${b.city ?? ""}`.trim(),
+		},
+	};
+}
 
 export default async function BakeryDetailPage({
 	params,
@@ -36,6 +64,10 @@ export default async function BakeryDetailPage({
 
 	return (
 		<div className="mx-auto max-w-2xl">
+			<PageViewTracker
+				event="bakery_viewed"
+				properties={{ bakery_id: typedBakery.id, bakery_name: typedBakery.name }}
+			/>
 			{/* Hero placeholder */}
 			<div className="relative aspect-[16/9] w-full bg-parchment">
 				<div className="absolute inset-0 flex items-center justify-center">

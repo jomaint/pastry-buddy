@@ -28,25 +28,6 @@ type CreateCheckInInput = {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch check-ins for a specific user.
- */
-export function useCheckIns(userId?: string) {
-	return useQuery<CheckIn[]>({
-		queryKey: ["check-ins", userId],
-		enabled: !!userId,
-		queryFn: async () => {
-			const { data, error } = await supabase
-				.from("check_ins")
-				.select("*")
-				.eq("user_id", userId as string)
-				.order("created_at", { ascending: false });
-			if (error) throw error;
-			return data as CheckIn[];
-		},
-	});
-}
-
-/**
  * Fetch the social feed — check-ins from users the current user follows,
  * plus their own. Falls back to global feed if not following anyone.
  */
@@ -188,6 +169,60 @@ export function useTopRatedPastries(userId?: string) {
 	});
 }
 
+/**
+ * Get category-specific check-in counts and whether user has a perfect rating.
+ */
+export function useBadgeStats(userId?: string) {
+	return useQuery<{ categoryCheckins: Record<string, number>; hasPerfectRating: boolean }>({
+		queryKey: ["badge-stats", userId],
+		enabled: !!userId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("feed_view")
+				.select("pastry_category, rating")
+				.eq("user_id", userId as string);
+			if (error) throw error;
+
+			const categoryCheckins: Record<string, number> = {};
+			let hasPerfectRating = false;
+
+			for (const row of (data ?? []) as { pastry_category: string; rating: number }[]) {
+				categoryCheckins[row.pastry_category] = (categoryCheckins[row.pastry_category] || 0) + 1;
+				if (row.rating === 5) hasPerfectRating = true;
+			}
+
+			return { categoryCheckins, hasPerfectRating };
+		},
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+/**
+ * Get a user's flavor tag counts for taste match calculation.
+ */
+export function useUserFlavorTags(userId?: string) {
+	return useQuery<Record<string, number>>({
+		queryKey: ["user-flavor-tags", userId],
+		enabled: !!userId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("check_ins")
+				.select("flavor_tags")
+				.eq("user_id", userId as string);
+			if (error) throw error;
+
+			const tagCounts: Record<string, number> = {};
+			for (const row of data ?? []) {
+				for (const tag of (row as { flavor_tags: string[] }).flavor_tags ?? []) {
+					tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+				}
+			}
+			return tagCounts;
+		},
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
 // ---------------------------------------------------------------------------
 // Mutations
 // ---------------------------------------------------------------------------
@@ -229,6 +264,13 @@ export function useCreateCheckIn() {
 			queryClient.invalidateQueries({ queryKey: ["profile"] });
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
 			queryClient.invalidateQueries({ queryKey: ["bakeries-visited"] });
+			queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+			queryClient.invalidateQueries({ queryKey: ["taste-profile"] });
+			queryClient.invalidateQueries({ queryKey: ["top-rated"] });
+			queryClient.invalidateQueries({ queryKey: ["streak-rpc"] });
+			queryClient.invalidateQueries({ queryKey: ["unlocked-features"] });
+			queryClient.invalidateQueries({ queryKey: ["taste-similarity"] });
+			queryClient.invalidateQueries({ queryKey: ["pastry-match"] });
 		},
 	});
 }
