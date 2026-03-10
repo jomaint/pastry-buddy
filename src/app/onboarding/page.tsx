@@ -6,11 +6,48 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { PASTRY_CATEGORIES } from "@/config/pastry-categories";
 import { useTrackEvent } from "@/hooks/use-track-event";
-import { ChevronRight, Croissant, Loader2, MapPin, Sparkles } from "lucide-react";
+import { AnimatePresence, type Variants, motion } from "framer-motion";
+import {
+	ChevronRight,
+	Flame,
+	Loader2,
+	MapPin,
+	Plus,
+	Sparkles,
+	Star,
+	Trophy,
+	Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 type Step = "welcome" | "categories" | "ready";
+
+const fadeSlideUp: Variants = {
+	hidden: { opacity: 0, y: 20 },
+	visible: (delay: number) => ({
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.5, delay, ease: [0.25, 1, 0.5, 1] },
+	}),
+};
+
+const staggerContainer: Variants = {
+	hidden: { opacity: 0 },
+	visible: {
+		opacity: 1,
+		transition: { staggerChildren: 0.08, delayChildren: 0.6 },
+	},
+};
+
+const staggerItem: Variants = {
+	hidden: { opacity: 0, y: 12 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: { duration: 0.4, ease: [0.25, 1, 0.5, 1] },
+	},
+};
 
 export default function OnboardingPage() {
 	const { data: auth, isLoading } = useAuth();
@@ -50,7 +87,6 @@ export default function OnboardingPage() {
 		);
 	}
 
-	// If already onboarded or not authenticated, redirect
 	if (!auth?.isAuthenticated) {
 		router.push("/sign-in");
 		return null;
@@ -62,161 +98,400 @@ export default function OnboardingPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+		<AnimatePresence mode="wait">
+			{step === "welcome" && (
+				<WelcomeStep key="welcome" onNext={() => setStep("categories")} onSkip={handleSkip} />
+			)}
+			{step === "categories" && (
+				<CategoriesStep
+					key="categories"
+					selectedCategories={selectedCategories}
+					toggleCategory={toggleCategory}
+					onNext={() => setStep("ready")}
+				/>
+			)}
+			{step === "ready" && (
+				<ReadyStep
+					key="ready"
+					isPending={completeOnboarding.isPending}
+					onComplete={handleComplete}
+				/>
+			)}
+		</AnimatePresence>
+	);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Welcome Step — Immersive hero screen
+ * ────────────────────────────────────────────────────────────────────────── */
+
+function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+	return (
+		<motion.div
+			className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-creme"
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0, transition: { duration: 0.2 } }}
+		>
+			{/* Pastry photo placeholder — rich warm gradient background */}
+			<div className="absolute inset-0 h-[65%]">
+				<div
+					className="absolute inset-0"
+					style={{
+						background: [
+							"radial-gradient(ellipse 80% 60% at 30% 20%, rgba(212, 160, 83, 0.6) 0%, transparent 60%)",
+							"radial-gradient(ellipse 60% 50% at 75% 35%, rgba(196, 80, 110, 0.35) 0%, transparent 55%)",
+							"radial-gradient(ellipse 50% 40% at 50% 55%, rgba(232, 168, 56, 0.4) 0%, transparent 50%)",
+							"radial-gradient(ellipse 70% 45% at 20% 60%, rgba(123, 153, 113, 0.2) 0%, transparent 50%)",
+							"linear-gradient(175deg, #d4a24e 0%, #c4506e 30%, #e8a838 55%, #d4a053 75%, #fdf8f0 100%)",
+						].join(", "),
+					}}
+				/>
+				{/* Floating decorative shapes to simulate pastry textures */}
+				<div className="absolute inset-0 overflow-hidden opacity-20">
+					<div className="absolute left-[10%] top-[15%] h-32 w-32 rounded-full bg-flour/30 blur-xl" />
+					<div className="absolute right-[15%] top-[25%] h-24 w-24 rounded-full bg-honey/40 blur-lg" />
+					<div className="absolute left-[40%] top-[10%] h-20 w-20 rounded-full bg-raspberry/20 blur-lg" />
+					<div className="absolute left-[60%] top-[40%] h-28 w-28 rounded-full bg-brioche/30 blur-xl" />
+					<div className="absolute left-[20%] top-[45%] h-16 w-16 rounded-full bg-flour/20 blur-md" />
+				</div>
+				{/* Gradient fade to creme at the bottom */}
+				<div
+					className="absolute inset-x-0 bottom-0 h-[45%]"
+					style={{
+						background:
+							"linear-gradient(to bottom, transparent 0%, rgba(253,248,240,0.6) 40%, #fdf8f0 100%)",
+					}}
+				/>
+			</div>
+
+			{/* Content layer */}
+			<div className="relative z-10 flex flex-1 flex-col">
+				{/* Top pill badge */}
+				<div className="flex justify-center pt-16">
+					<motion.div
+						className="inline-flex items-center gap-1.5 rounded-full bg-flour/80 px-4 py-2 text-xs font-medium text-espresso shadow-sm backdrop-blur-sm"
+						custom={0.2}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						<Sparkles size={14} className="text-brioche" />
+						Your pastry adventure starts here
+					</motion.div>
+				</div>
+
+				{/* Spacer to push content down past the gradient */}
+				<div className="flex-1" />
+
+				{/* Main content area — sits in the faded-to-creme zone */}
+				<div className="px-6 pb-6">
+					{/* Heading */}
+					<motion.h1
+						className="font-display text-[2.25rem] leading-[1.15] tracking-tight text-espresso"
+						custom={0.3}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						Discover. <span className="text-raspberry">Taste.</span> Share.
+					</motion.h1>
+
+					{/* Body text */}
+					<motion.p
+						className="mt-3 max-w-sm text-[0.9375rem] leading-relaxed text-sesame"
+						custom={0.4}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						Find hidden pastry gems, save your sweetest moments, and share secret spots with
+						friends. Every bite is an adventure.
+					</motion.p>
+
+					{/* CTAs */}
+					<motion.div
+						className="mt-8 flex flex-col gap-3"
+						custom={0.5}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						<button
+							type="button"
+							onClick={onNext}
+							className="golden-gradient inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full text-base font-medium text-flour shadow-md transition-all duration-150 hover:opacity-90 active:scale-[0.97] active:opacity-80"
+						>
+							<MapPin size={18} />
+							Start Exploring
+						</button>
+						<button
+							type="button"
+							onClick={onSkip}
+							className="glass-card inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full text-sm font-medium text-espresso transition-all duration-150 hover:bg-flour/90 active:scale-[0.97]"
+						>
+							How it Works
+						</button>
+					</motion.div>
+
+					{/* Stats preview card */}
+					<motion.div
+						className="mt-6 rounded-[16px] bg-flour p-4 shadow-sm"
+						style={{
+							boxShadow:
+								"0 0 0 0.5px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.03)",
+						}}
+						variants={staggerContainer}
+						initial="hidden"
+						animate="visible"
+					>
+						<div className="grid grid-cols-2 gap-3">
+							<motion.div
+								className="flex items-center gap-3 rounded-[12px] bg-parchment/50 p-3"
+								variants={staggerItem}
+							>
+								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-brioche/10">
+									<Star size={14} className="text-brioche" />
+								</div>
+								<div>
+									<p className="text-lg font-semibold leading-none text-espresso tabular-nums">
+										12
+									</p>
+									<p className="mt-0.5 text-[11px] text-sesame">Finds</p>
+								</div>
+							</motion.div>
+
+							<motion.div
+								className="flex items-center gap-3 rounded-[12px] bg-parchment/50 p-3"
+								variants={staggerItem}
+							>
+								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-pistachio/10">
+									<Zap size={14} className="text-pistachio" />
+								</div>
+								<div>
+									<p className="text-lg font-semibold leading-none text-espresso tabular-nums">
+										485
+									</p>
+									<p className="mt-0.5 text-[11px] text-sesame">XP</p>
+								</div>
+							</motion.div>
+
+							<motion.div
+								className="flex flex-col gap-1.5 rounded-[12px] bg-parchment/50 p-3"
+								variants={staggerItem}
+							>
+								<div className="flex items-center gap-2">
+									<Trophy size={14} className="text-honey" />
+									<span className="text-[11px] font-medium text-sesame">Level 4</span>
+								</div>
+								<div className="h-1.5 w-full overflow-hidden rounded-full bg-parchment">
+									<div
+										className="golden-gradient h-full rounded-full"
+										style={{ width: `${(35 / 150) * 100}%` }}
+									/>
+								</div>
+								<p className="text-[10px] text-sesame/70 tabular-nums">35 / 150 XP</p>
+							</motion.div>
+
+							<motion.div
+								className="flex items-center gap-3 rounded-[12px] bg-parchment/50 p-3"
+								variants={staggerItem}
+							>
+								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-raspberry/10">
+									<Flame size={14} className="text-raspberry" />
+								</div>
+								<div>
+									<p className="text-lg font-semibold leading-none text-espresso tabular-nums">3</p>
+									<p className="mt-0.5 text-[11px] text-sesame">
+										days <span className="text-raspberry">🔥</span>
+									</p>
+								</div>
+							</motion.div>
+						</div>
+					</motion.div>
+				</div>
+			</div>
+
+			{/* Golden FAB */}
+			<motion.button
+				type="button"
+				className="golden-gradient fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full text-flour shadow-lg"
+				style={{ boxShadow: "0 4px 16px rgba(212, 162, 78, 0.35)" }}
+				initial={{ opacity: 0, scale: 0.5 }}
+				animate={{
+					opacity: 1,
+					scale: 1,
+					transition: { delay: 0.8, duration: 0.4, ease: [0.25, 1, 0.5, 1] },
+				}}
+				whileHover={{ scale: 1.05 }}
+				whileTap={{ scale: 0.92 }}
+			>
+				<Plus size={24} />
+			</motion.button>
+		</motion.div>
+	);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Categories Step
+ * ────────────────────────────────────────────────────────────────────────── */
+
+function CategoriesStep({
+	selectedCategories,
+	toggleCategory,
+	onNext,
+}: {
+	selectedCategories: string[];
+	toggleCategory: (name: string) => void;
+	onNext: () => void;
+}) {
+	return (
+		<motion.div
+			className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12"
+			initial={{ opacity: 0, x: 40 }}
+			animate={{ opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.25, 1, 0.5, 1] } }}
+			exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
+		>
 			<div className="mx-auto w-full max-w-md">
 				{/* Step indicator */}
 				<div className="mb-8 flex items-center justify-center gap-2">
-					{(["welcome", "categories", "ready"] as Step[]).map((s, i) => (
-						<div
-							key={s}
-							className={`h-1.5 rounded-full transition-all duration-300 ${
-								step === s
-									? "w-8 bg-brioche"
-									: i < ["welcome", "categories", "ready"].indexOf(step)
-										? "w-6 bg-brioche/40"
-										: "w-6 bg-parchment"
-							}`}
-						/>
-					))}
+					<div className="h-1.5 w-6 rounded-full bg-brioche/40" />
+					<div className="h-1.5 w-8 rounded-full bg-brioche" />
+					<div className="h-1.5 w-6 rounded-full bg-parchment" />
 				</div>
 
-				{/* Step: Welcome */}
-				{step === "welcome" && (
-					<div className="flex flex-col items-center gap-6 text-center">
-						<div className="flex h-24 w-24 items-center justify-center rounded-full bg-brioche/10">
-							<Croissant size={40} className="text-brioche" />
-						</div>
-
-						<div>
-							<h1 className="font-display text-3xl text-espresso">Welcome to Pastry Buddy</h1>
-							<p className="mt-3 text-sm leading-relaxed text-sesame">
-								Your personal pastry journal. Log the pastries you love, discover new favorites, and
-								connect with fellow pastry lovers.
-							</p>
-						</div>
-
-						<div className="flex w-full flex-col gap-3 pt-2">
-							<div className="flex items-center gap-3 rounded-[14px] bg-parchment/60 p-4 text-left">
-								<Sparkles size={20} className="shrink-0 text-brioche" />
-								<div>
-									<p className="text-sm font-medium text-espresso">Personalized Recommendations</p>
-									<p className="text-xs text-sesame">
-										The more you log, the smarter your suggestions get
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-3 rounded-[14px] bg-parchment/60 p-4 text-left">
-								<MapPin size={20} className="shrink-0 text-brioche" />
-								<div>
-									<p className="text-sm font-medium text-espresso">Discover Local Bakeries</p>
-									<p className="text-xs text-sesame">
-										Find the best pastries near you in California
-									</p>
-								</div>
-							</div>
-						</div>
-
-						<Button size="lg" className="mt-2 w-full" onClick={() => setStep("categories")}>
-							Get Started
-							<ChevronRight size={16} />
-						</Button>
-
-						<button
-							type="button"
-							onClick={handleSkip}
-							className="text-sm text-sesame transition-colors hover:text-espresso"
-						>
-							Skip for now
-						</button>
+				<div className="flex flex-col gap-6">
+					<div className="text-center">
+						<h1 className="font-display text-2xl text-espresso">What pastries do you love?</h1>
+						<p className="mt-2 text-sm text-sesame">
+							Pick at least 3 to personalize your experience
+						</p>
 					</div>
-				)}
 
-				{/* Step: Pick Categories */}
-				{step === "categories" && (
-					<div className="flex flex-col gap-6">
-						<div className="text-center">
-							<h1 className="font-display text-2xl text-espresso">What pastries do you love?</h1>
-							<p className="mt-2 text-sm text-sesame">
-								Pick at least 3 to personalize your experience
-							</p>
-						</div>
-
-						<div className="flex flex-wrap justify-center gap-2">
-							{PASTRY_CATEGORIES.map((cat) => (
+					<motion.div
+						className="flex flex-wrap justify-center gap-2"
+						variants={staggerContainer}
+						initial="hidden"
+						animate="visible"
+					>
+						{PASTRY_CATEGORIES.map((cat) => (
+							<motion.div key={cat.name} variants={staggerItem}>
 								<Chip
-									key={cat.name}
 									selected={selectedCategories.includes(cat.name)}
 									onToggle={() => toggleCategory(cat.name)}
 								>
 									{cat.name}
 								</Chip>
-							))}
-						</div>
+							</motion.div>
+						))}
+					</motion.div>
 
-						<div className="flex flex-col gap-2 pt-2">
-							<Button
-								size="lg"
-								className="w-full"
-								disabled={selectedCategories.length < 3}
-								onClick={() => setStep("ready")}
-							>
-								Continue ({selectedCategories.length} selected)
-								<ChevronRight size={16} />
-							</Button>
-							<button
-								type="button"
-								onClick={() => setStep("ready")}
-								className="text-sm text-sesame transition-colors hover:text-espresso"
-							>
-								Skip this step
-							</button>
-						</div>
-					</div>
-				)}
-
-				{/* Step: Ready */}
-				{step === "ready" && (
-					<div className="flex flex-col items-center gap-6 text-center">
-						<div className="flex h-24 w-24 items-center justify-center rounded-full bg-brioche/10">
-							<span className="text-4xl">🎉</span>
-						</div>
-
-						<div>
-							<h1 className="font-display text-2xl text-espresso">You&apos;re all set!</h1>
-							<p className="mt-2 text-sm leading-relaxed text-sesame">
-								Time to log your first pastry. We&apos;ll help you get started with a quick
-								checklist on the home page.
-							</p>
-						</div>
-
-						<div className="w-full rounded-[16px] bg-parchment/60 p-4">
-							<p className="mb-3 text-xs font-medium uppercase tracking-wide text-sesame">
-								Your first steps
-							</p>
-							<div className="flex flex-col gap-2.5">
-								{[
-									{ label: "Log your first pastry", done: false },
-									{ label: "Follow a friend", done: false },
-									{ label: "Create a pastry list", done: false },
-									{ label: "Reach 5 check-ins", done: false },
-								].map((item) => (
-									<div key={item.label} className="flex items-center gap-2.5">
-										<div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-sesame/30">
-											{item.done && <span className="text-xs text-brioche">✓</span>}
-										</div>
-										<span className="text-sm text-espresso">{item.label}</span>
-									</div>
-								))}
-							</div>
-						</div>
-
+					<div className="flex flex-col gap-2 pt-2">
 						<Button
 							size="lg"
-							className="mt-2 w-full"
-							disabled={completeOnboarding.isPending}
-							onClick={handleComplete}
+							className="w-full"
+							disabled={selectedCategories.length < 3}
+							onClick={onNext}
 						>
-							{completeOnboarding.isPending ? (
+							Continue ({selectedCategories.length} selected)
+							<ChevronRight size={16} />
+						</Button>
+						<button
+							type="button"
+							onClick={onNext}
+							className="text-sm text-sesame transition-colors hover:text-espresso"
+						>
+							Skip this step
+						</button>
+					</div>
+				</div>
+			</div>
+		</motion.div>
+	);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Ready Step
+ * ────────────────────────────────────────────────────────────────────────── */
+
+function ReadyStep({
+	isPending,
+	onComplete,
+}: {
+	isPending: boolean;
+	onComplete: () => void;
+}) {
+	return (
+		<motion.div
+			className="flex min-h-[100dvh] flex-col items-center justify-center px-6 py-12"
+			initial={{ opacity: 0, x: 40 }}
+			animate={{ opacity: 1, x: 0, transition: { duration: 0.35, ease: [0.25, 1, 0.5, 1] } }}
+			exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
+		>
+			<div className="mx-auto w-full max-w-md">
+				{/* Step indicator */}
+				<div className="mb-8 flex items-center justify-center gap-2">
+					<div className="h-1.5 w-6 rounded-full bg-brioche/40" />
+					<div className="h-1.5 w-6 rounded-full bg-brioche/40" />
+					<div className="h-1.5 w-8 rounded-full bg-brioche" />
+				</div>
+
+				<div className="flex flex-col items-center gap-6 text-center">
+					<motion.div
+						className="flex h-24 w-24 items-center justify-center rounded-full bg-brioche/10"
+						initial={{ scale: 0 }}
+						animate={{
+							scale: 1,
+							transition: { delay: 0.2, type: "spring", stiffness: 200, damping: 15 },
+						}}
+					>
+						<span className="text-4xl">🎉</span>
+					</motion.div>
+
+					<motion.div custom={0.15} variants={fadeSlideUp} initial="hidden" animate="visible">
+						<h1 className="font-display text-2xl text-espresso">You&apos;re all set!</h1>
+						<p className="mt-2 text-sm leading-relaxed text-sesame">
+							Time to log your first pastry. We&apos;ll help you get started with a quick checklist
+							on the home page.
+						</p>
+					</motion.div>
+
+					<motion.div
+						className="w-full rounded-[16px] bg-parchment/60 p-4"
+						custom={0.3}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						<p className="mb-3 text-xs font-medium uppercase tracking-wide text-sesame">
+							Your first steps
+						</p>
+						<div className="flex flex-col gap-2.5">
+							{[
+								{ label: "Log your first pastry", done: false },
+								{ label: "Follow a friend", done: false },
+								{ label: "Create a pastry list", done: false },
+								{ label: "Reach 5 check-ins", done: false },
+							].map((item) => (
+								<div key={item.label} className="flex items-center gap-2.5">
+									<div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-sesame/30">
+										{item.done && <span className="text-xs text-brioche">✓</span>}
+									</div>
+									<span className="text-sm text-espresso">{item.label}</span>
+								</div>
+							))}
+						</div>
+					</motion.div>
+
+					<motion.div
+						className="w-full"
+						custom={0.45}
+						variants={fadeSlideUp}
+						initial="hidden"
+						animate="visible"
+					>
+						<Button size="lg" className="mt-2 w-full" disabled={isPending} onClick={onComplete}>
+							{isPending ? (
 								<>
 									<Loader2 size={16} className="animate-spin" />
 									Setting up…
@@ -228,9 +503,9 @@ export default function OnboardingPage() {
 								</>
 							)}
 						</Button>
-					</div>
-				)}
+					</motion.div>
+				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

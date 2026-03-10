@@ -2,8 +2,10 @@
 
 @theme {
 	/* Colors */
-	--color-creme: #fbf7f2;
-	--color-brioche: #c8875f;
+	--color-creme: #fdf8f0;
+	--color-brioche: #d4a24e;
+	--color-honey: #e8a838;
+	--color-warm-glass: rgba(255, 248, 237, 0.7);
 	--color-espresso: #2c1810;
 	--color-ganache: #4a2c2a;
 	--color-parchment: #f2eae0;
@@ -92,4 +94,18 @@
 	}
 }
 
-/* Legacy shell-content offset — kept for reference, no longer used */
+/* Utility classes */
+.glass-card {
+	background: rgba(255, 248, 237, 0.7);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 0.5px solid rgba(212, 162, 78, 0.12);
+}
+
+.golden-gradient {
+	background: linear-gradient(135deg, var(--color-honey), var(--color-brioche));
+}
+
+.golden-border-left {
+	border-left: 3px solid var(--color-brioche);
+}

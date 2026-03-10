@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { HTMLAttributes } from "react";
 
-type CardVariant = "default" | "elevated";
+type CardVariant = "default" | "elevated" | "glass" | "feed";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
 	variant?: CardVariant;
@@ -10,6 +10,8 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const variantStyles: Record<CardVariant, string> = {
 	default: "bg-parchment",
 	elevated: "bg-flour shadow-sm",
+	glass: "glass-card",
+	feed: "bg-flour shadow-sm golden-border-left",
 };
 
 function Card({ variant = "default", className, children, ...props }: CardProps) {

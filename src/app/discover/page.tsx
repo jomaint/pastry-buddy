@@ -5,6 +5,7 @@ import { usePastries, useSearchPastries, useTrendingPastries } from "@/api/pastr
 import { useFollow } from "@/api/profiles";
 import { useRecommendedBakeries } from "@/api/recommendations";
 import { useFriendSuggestions } from "@/api/social";
+import { FloatingAddButton } from "@/components/check-in/FloatingAddButton";
 import { PastryCard } from "@/components/pastry/PastryCard";
 import { Avatar } from "@/components/ui/Avatar";
 import { InlineRating } from "@/components/ui/InlineRating";
@@ -54,7 +55,14 @@ export default function DiscoverPage() {
 
 	return (
 		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-4xl lg:gap-8 lg:py-8">
-			<h1 className="font-display text-3xl text-espresso">Discover</h1>
+			{/* Header */}
+			<div>
+				<div className="flex items-center gap-2">
+					<Sparkles size={18} className="text-brioche" />
+					<h1 className="font-display text-3xl text-espresso">Discover</h1>
+				</div>
+				<p className="mt-1 text-sm text-sesame">Find your next favorite pastry</p>
+			</div>
 
 			{/* Search bar */}
 			<div className="relative">
@@ -68,7 +76,7 @@ export default function DiscoverPage() {
 						setActiveCategory(null);
 					}}
 					placeholder="Search pastries, bakeries, or flavors..."
-					className="h-11 w-full rounded-[12px] border border-parchment bg-flour pl-10 pr-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20"
+					className="h-12 w-full rounded-[14px] border border-parchment bg-flour pl-10 pr-4 text-sm text-espresso placeholder:text-sesame transition-all duration-150 focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20 focus:shadow-[0_0_0_4px_rgba(212,162,78,0.08)]"
 				/>
 			</div>
 
@@ -82,9 +90,9 @@ export default function DiscoverPage() {
 							setActiveCategory(activeCategory === cat.name ? null : cat.name);
 							setQuery("");
 						}}
-						className={`shrink-0 rounded-full px-4 min-h-9 text-sm font-medium transition-all active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche ${
+						className={`shrink-0 rounded-full px-4 min-h-9 text-sm font-medium transition-all duration-150 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche ${
 							activeCategory === cat.name
-								? "bg-brioche text-flour"
+								? "golden-gradient text-flour shadow-[0_2px_8px_rgba(212,162,78,0.25)]"
 								: "bg-parchment text-ganache hover:bg-brioche/10 hover:text-brioche"
 						}`}
 					>
@@ -180,7 +188,10 @@ export default function DiscoverPage() {
 				<>
 					{/* Trending */}
 					<section className="flex flex-col gap-3">
-						<h2 className="font-display text-xl text-espresso">Trending Near You</h2>
+						<div className="flex items-center gap-1.5">
+							<span className="text-base">🔥</span>
+							<h2 className="font-display text-xl text-espresso">Trending Near You</h2>
+						</div>
 						{trendingLoading ? (
 							<div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
 								{[1, 2, 3, 4].map((i) => (
@@ -209,7 +220,7 @@ export default function DiscoverPage() {
 					{recommendedBakeries && recommendedBakeries.length > 0 && (
 						<section className="flex flex-col gap-3">
 							<div className="flex items-center gap-1.5">
-								<Sparkles size={14} className="text-brioche" />
+								<span className="text-base">✨</span>
 								<h2 className="font-display text-xl text-espresso">Recommended for You</h2>
 							</div>
 							<StaggerContainer className="flex flex-col gap-2">
@@ -252,7 +263,7 @@ export default function DiscoverPage() {
 					{friendSuggestions && friendSuggestions.length > 0 && (
 						<section className="flex flex-col gap-3">
 							<div className="flex items-center gap-1.5">
-								<Users size={14} className="text-pistachio" />
+								<span className="text-base">👋</span>
 								<h2 className="font-display text-xl text-espresso">People You Might Know</h2>
 							</div>
 							<div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar">
@@ -280,7 +291,7 @@ export default function DiscoverPage() {
 												});
 											}}
 											disabled={follow.isPending}
-											className="inline-flex min-h-[36px] w-full items-center justify-center gap-1 rounded-[14px] bg-brioche px-3 text-xs font-medium text-flour transition-colors hover:bg-brioche/90"
+											className="inline-flex min-h-[36px] w-full items-center justify-center gap-1 rounded-[14px] golden-gradient px-3 text-xs font-medium text-flour transition-all duration-150 hover:opacity-90 active:scale-[0.97]"
 										>
 											<UserPlus size={12} />
 											Follow
@@ -293,7 +304,10 @@ export default function DiscoverPage() {
 
 					{/* Popular Bakeries */}
 					<section className="flex flex-col gap-3">
-						<h2 className="font-display text-xl text-espresso">Popular Bakeries</h2>
+						<div className="flex items-center gap-1.5">
+							<span className="text-base">🏪</span>
+							<h2 className="font-display text-xl text-espresso">Popular Bakeries</h2>
+						</div>
 						<StaggerContainer className="flex flex-col gap-2">
 							{allBakeries?.slice(0, 8).map((bakery) => (
 								<StaggerItem key={bakery.id}>
@@ -315,6 +329,7 @@ export default function DiscoverPage() {
 					</section>
 				</>
 			)}
+			<FloatingAddButton />
 		</PageTransition>
 	);
 }
