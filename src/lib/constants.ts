@@ -25,7 +25,7 @@ export const TASTE_AXES = ["Sweet", "Buttery", "Fruity", "Chocolatey", "Nutty", 
 export const NAV_ITEMS = [
 	{ label: "Feed", href: "/", icon: "Home" },
 	{ label: "Discover", href: "/discover", icon: "Search" },
-	{ label: "Log", href: "/log", icon: "PlusCircle" },
+	{ label: "Check In", href: "/add", icon: "PlusCircle" },
 	{ label: "Lists", href: "/lists", icon: "Bookmark" },
 	{ label: "Profile", href: "/profile", icon: "User" },
 ] as const;

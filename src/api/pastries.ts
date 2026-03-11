@@ -21,7 +21,7 @@ function escapeIlike(input: string): string {
 export function usePastries(opts?: {
 	category?: string;
 	placeId?: string;
-	sort?: "rating" | "checkins" | "newest";
+	sort?: "checkins" | "newest";
 	limit?: number;
 }) {
 	const { category, placeId, sort = "checkins", limit = 50 } = opts ?? {};
@@ -35,9 +35,6 @@ export function usePastries(opts?: {
 			if (placeId) query = query.eq("place_id", placeId);
 
 			switch (sort) {
-				case "rating":
-					query = query.order("avg_rating", { ascending: false, nullsFirst: false });
-					break;
 				case "newest":
 					query = query.order("created_at", { ascending: false });
 					break;

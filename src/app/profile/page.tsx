@@ -82,7 +82,7 @@ function ProgressiveInsights({
 			>
 				<p className="text-sm text-sesame">
 					<span className="font-medium text-espresso">
-						Log {5 - count} more item{5 - count > 1 ? "s" : ""}
+						Check in {5 - count} more item{5 - count > 1 ? "s" : ""}
 					</span>{" "}
 					to see your first ranking
 				</p>
@@ -120,7 +120,7 @@ function ProgressiveInsights({
 						</>
 					) : (
 						<>
-							You have logged <span className="font-medium">{count} items</span> so far
+							You have checked in <span className="font-medium">{count} items</span> so far
 						</>
 					)}
 				</p>
@@ -207,7 +207,7 @@ function ItemCardView({ card }: { card: ItemCard }) {
 			<div className="flex items-start justify-between gap-3">
 				<div className="min-w-0 flex-1">
 					<Link
-						href={`/pastry/${card.pastry_slug}`}
+						href={`/place/${card.place_id}?pastry=${card.pastry_id}`}
 						className="font-display text-base text-espresso hover:text-brioche transition-colors"
 					>
 						{card.pastry_name}
@@ -315,7 +315,7 @@ function TimelineView({ items }: { items: ItemCard[] }) {
 						{monthItems.map((card) => (
 							<Link
 								key={`${card.pastry_id}-${card.place_id}`}
-								href={`/pastry/${card.pastry_slug}`}
+								href={`/place/${card.place_id}?pastry=${card.pastry_id}`}
 								className="flex items-center gap-3 rounded-card bg-flour p-3 shadow-sm transition-colors hover:bg-parchment/30"
 							>
 								<div className="min-w-0 flex-1">
@@ -355,7 +355,7 @@ function RankingsView({ rankings }: { rankings: Record<string, ItemCard[]> | und
 						{cards.map((card, i) => (
 							<Link
 								key={`${card.pastry_id}-${card.place_id}`}
-								href={`/pastry/${card.pastry_slug}`}
+								href={`/place/${card.place_id}?pastry=${card.pastry_id}`}
 								className="flex items-center gap-3 rounded-card bg-flour p-3 shadow-sm transition-colors hover:bg-parchment/30"
 							>
 								<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-parchment/60 font-display text-sm text-espresso tabular-nums">
@@ -398,7 +398,7 @@ function WantToTrySection() {
 							<p className="text-xs text-sesame truncate">{bm.place_name}</p>
 						</div>
 						<Link
-							href="/log"
+							href="/add"
 							className="shrink-0 rounded-button bg-parchment/60 px-3 py-1.5 text-xs font-medium text-espresso transition-colors hover:bg-parchment"
 						>
 							Tried it?
@@ -470,7 +470,7 @@ export default function ProfilePage() {
 	// ---------------------------------------------------------------------------
 
 	const stats = [
-		{ label: "Logged", value: profile.total_checkins },
+		{ label: "Check-ins", value: profile.total_checkins },
 		{ label: "Places", value: placesVisited ?? 0 },
 		{ label: "Following", value: followCounts?.following ?? 0 },
 		{ label: "Followers", value: followCounts?.followers ?? 0 },
@@ -606,13 +606,13 @@ export default function ProfilePage() {
 								<p className="text-sm text-sesame">
 									{categoryFilter
 										? "No items in this category yet"
-										: "Start logging pastries to build your collection"}
+										: "Start checking in pastries to build your collection"}
 								</p>
 								<Link
-									href="/log"
+									href="/add"
 									className="mt-2 inline-flex h-9 items-center justify-center rounded-button bg-brioche px-4 text-sm font-medium text-flour transition-colors hover:bg-brioche/90"
 								>
-									Log your first
+									Check in your first
 								</Link>
 							</div>
 						)}

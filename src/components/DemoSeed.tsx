@@ -61,7 +61,7 @@ export function DemoSeed() {
 			pastry_slug: c.pastry.slug,
 			pastry_category: c.pastry.category,
 			pastry_photo_url: c.pastry.photo_url,
-			pastry_avg_rating: c.pastry.avg_rating,
+			pastry_avg_rating: c.pastry.avg_rating ?? null,
 			place_name: c.place.name,
 			place_slug: c.place.slug,
 			place_city: c.place.city,

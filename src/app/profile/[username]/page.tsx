@@ -89,7 +89,7 @@ export default function PublicProfilePage({
 	}
 
 	const stats = [
-		{ label: "Logged", value: profile.total_checkins },
+		{ label: "Check-ins", value: profile.total_checkins },
 		{ label: "Places", value: placesVisited ?? 0 },
 		{ label: "Following", value: followCounts?.following ?? 0 },
 		{ label: "Followers", value: followCounts?.followers ?? 0 },
@@ -206,7 +206,7 @@ export default function PublicProfilePage({
 						{topRated.map((item, i) => (
 							<Link
 								key={`${item.pastry_slug}-${i}`}
-								href={`/pastry/${item.pastry_slug}`}
+								href={`/place/${item.place_id}?pastry=${item.pastry_id}`}
 								className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-colors hover:bg-parchment/40"
 							>
 								<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-parchment/60 font-display text-sm text-espresso">

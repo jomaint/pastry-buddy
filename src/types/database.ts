@@ -38,8 +38,10 @@ export interface Pastry {
 	place_id: string;
 	description: string | null;
 	photo_url: string | null;
-	avg_rating: number | null;
-	total_checkins: number;
+	/** @deprecated Pastries are neutral catalog items. Ratings live on check-ins. */
+	avg_rating?: number | null;
+	/** @deprecated Kept for DB compat. */
+	total_checkins?: number;
 	featured: boolean;
 	created_by: string;
 	created_at: string;

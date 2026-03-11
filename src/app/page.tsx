@@ -5,7 +5,6 @@ import { useFeed } from "@/api/check-ins";
 import { useFeaturedPastries, useTrendingPastries } from "@/api/pastries";
 import { useNearbyPlaces } from "@/api/places";
 import { Avatar } from "@/components/ui/Avatar";
-import { InlineRating } from "@/components/ui/InlineRating";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { Rating } from "@/components/ui/Rating";
@@ -192,7 +191,7 @@ export default function HomePage() {
 									trendingDisplay?.slice(0, 3).map((pastry) => (
 										<Link
 											key={pastry.id}
-											href={`/pastry/${pastry.slug}`}
+											href={`/place/${pastry.place_id}?pastry=${pastry.id}`}
 											className="flex w-40 shrink-0 flex-col gap-2 rounded-card bg-flour p-3 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] lg:w-auto"
 										>
 											<div className="relative aspect-square w-full overflow-hidden rounded-input bg-parchment">
@@ -212,7 +211,9 @@ export default function HomePage() {
 											</div>
 											<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 											<p className="truncate text-xs text-sesame">{pastry.place_name}</p>
-											<InlineRating value={pastry.avg_rating} count={pastry.total_checkins} />
+											<span className="rounded-chip bg-parchment/60 px-2 py-0.5 text-[11px] font-medium text-sesame">
+												{pastry.category}
+											</span>
 										</Link>
 									))
 								)}
@@ -241,7 +242,7 @@ export default function HomePage() {
 							trendingDisplay?.map((pastry) => (
 								<Link
 									key={pastry.id}
-									href={`/pastry/${pastry.slug}`}
+									href={`/place/${pastry.place_id}?pastry=${pastry.id}`}
 									className="flex w-40 shrink-0 flex-col gap-2 rounded-card bg-flour p-3 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] lg:w-auto"
 								>
 									<div className="relative aspect-square w-full overflow-hidden rounded-input bg-parchment">
@@ -261,7 +262,9 @@ export default function HomePage() {
 									</div>
 									<p className="truncate text-sm font-medium text-espresso">{pastry.name}</p>
 									<p className="truncate text-xs text-sesame">{pastry.place_name}</p>
-									<InlineRating value={pastry.avg_rating} count={pastry.total_checkins} />
+									<span className="rounded-chip bg-parchment/60 px-2 py-0.5 text-[11px] font-medium text-sesame">
+										{pastry.category}
+									</span>
 
 									{/* Flavor tags & notes snippet */}
 									{pastry.description && (
@@ -284,8 +287,8 @@ export default function HomePage() {
 						<BookOpen size={24} className="mb-3 text-brioche" />
 						<p className="font-display text-lg text-espresso">Your journal is ready</p>
 						<p className="mt-1 max-w-sm text-sm leading-relaxed text-ganache">
-							You&rsquo;ve logged {guestCount} pastries as a guest. Create a free account to keep
-							your journal, follow friends, and unlock badges.
+							You&rsquo;ve checked in {guestCount} pastries as a guest. Create a free account to
+							keep your journal, follow friends, and unlock badges.
 						</p>
 						<Link
 							href="/sign-up"
@@ -302,11 +305,11 @@ export default function HomePage() {
 						<p className="font-display text-lg text-espresso">Been here before?</p>
 						<p className="mt-1 text-sm text-ganache">Tap to remember it.</p>
 						<Link
-							href="/log"
+							href="/add"
 							className="mt-5 inline-flex h-10 items-center gap-2 rounded-button bg-brioche px-5 text-sm font-medium text-flour transition-all duration-150 hover:bg-brioche/90 active:scale-[0.97]"
 						>
 							<Plus size={14} />
-							Log a pastry
+							Check in a pastry
 						</Link>
 					</section>
 				) : null}
@@ -339,11 +342,11 @@ export default function HomePage() {
 								What&rsquo;s the last pastry you had?
 							</p>
 							<Link
-								href="/log"
+								href="/add"
 								className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-button bg-brioche px-5 text-sm font-medium text-flour transition-all duration-150 hover:bg-brioche/90 active:scale-[0.97]"
 							>
 								<Croissant size={14} />
-								Log your first pastry &rarr;
+								Check in your first pastry &rarr;
 							</Link>
 						</div>
 					) : (
@@ -354,12 +357,13 @@ export default function HomePage() {
 										href={`/check-in/${checkin.id}`}
 										className="golden-border-left flex flex-col gap-3 rounded-card bg-flour p-4 pl-5 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.99]"
 									>
-										{/* Header */}
+										{/* Header — "[User] visited [Place]" */}
 										<div className="flex items-center gap-3">
 											<Avatar name={checkin.user_display_name || "User"} size="sm" />
 											<div className="flex-1">
-												<p className="text-sm font-semibold text-espresso">
-													{checkin.user_display_name}
+												<p className="text-sm text-espresso">
+													<span className="font-semibold">{checkin.user_display_name}</span> visited{" "}
+													<span className="font-semibold">{checkin.place_name}</span>
 												</p>
 												<p className="text-xs text-sesame">
 													@{checkin.user_username} · {timeAgo(checkin.created_at)}
@@ -367,7 +371,7 @@ export default function HomePage() {
 											</div>
 										</div>
 
-										{/* Pastry info */}
+										{/* Pastry detail — "Had the [Pastry]" */}
 										<div className="flex items-start gap-3">
 											<div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-input bg-parchment">
 												{checkin.pastry_photo_url ? (
@@ -387,7 +391,9 @@ export default function HomePage() {
 												)}
 											</div>
 											<div className="flex-1">
-												<p className="font-display text-lg text-espresso">{checkin.pastry_name}</p>
+												<p className="text-sm font-medium text-espresso">
+													Had the {checkin.pastry_name}
+												</p>
 												<div className="mt-0.5 flex items-center gap-1 text-xs text-sesame">
 													<MapPin size={12} />
 													<span>{checkin.place_name}</span>
@@ -428,9 +434,9 @@ export default function HomePage() {
 				{/* Golden FAB                                                */}
 				{/* --------------------------------------------------------- */}
 				<Link
-					href="/log"
+					href="/add"
 					className="fixed bottom-6 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brioche text-flour shadow-lg transition-all duration-150 hover:bg-honey hover:shadow-xl active:scale-95 lg:bottom-8 lg:right-8"
-					aria-label="Log a pastry"
+					aria-label="Check in a pastry"
 				>
 					<Plus size={24} strokeWidth={2.5} />
 				</Link>

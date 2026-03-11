@@ -7,8 +7,8 @@ test.describe("Navigation guards", () => {
 		await expect(page).toHaveURL(/\/sign-in/);
 	});
 
-	test("/log page loads for guests", async ({ page }) => {
-		const response = await page.goto("/log");
+	test("/add page loads for guests", async ({ page }) => {
+		const response = await page.goto("/add");
 		expect(response?.status()).toBeLessThan(500);
 	});
 });

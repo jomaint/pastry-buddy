@@ -12,8 +12,8 @@ interface GettingStartedCardProps {
 const STEPS = [
 	{
 		key: "has_first_checkin" as const,
-		label: "Log your first pastry",
-		href: "/log",
+		label: "Check in your first pastry",
+		href: "/add",
 		icon: Croissant,
 	},
 	{
@@ -31,7 +31,7 @@ const STEPS = [
 	{
 		key: "has_five_checkins" as const,
 		label: "Reach 5 check-ins",
-		href: "/log",
+		href: "/add",
 		icon: Trophy,
 	},
 ];

@@ -203,15 +203,30 @@ export function useComments(checkInId: string) {
 		queryKey: ["comments", checkInId],
 		enabled: !!checkInId,
 		queryFn: async () => {
-			const { data, error } = await supabase
+			// Fetch comments first (no FK to profiles — FK goes to auth.users)
+			const { data: comments, error } = await supabase
 				.from("check_in_comments")
-				.select("*, profiles:user_id(username, display_name, avatar_url)")
+				.select("*")
 				.eq("check_in_id", checkInId)
 				.order("created_at", { ascending: true });
 			if (error) throw error;
+			if (!comments || comments.length === 0) return [];
 
-			return (data ?? []).map((row: Record<string, unknown>) => {
-				const profile = row.profiles as Record<string, unknown> | null;
+			// Look up profiles for all comment authors
+			const userIds = [...new Set(comments.map((c: { user_id: string }) => c.user_id))];
+			const { data: profiles } = await supabase
+				.from("profiles")
+				.select("id, username, display_name, avatar_url")
+				.in("id", userIds);
+
+			const profileMap = new Map(
+				(profiles ?? []).map((p: Record<string, unknown>) => [p.id as string, p]),
+			);
+
+			return comments.map((row: Record<string, unknown>) => {
+				const profile = profileMap.get(row.user_id as string) as
+					| Record<string, unknown>
+					| undefined;
 				return {
 					id: row.id as string,
 					check_in_id: row.check_in_id as string,
@@ -343,6 +358,70 @@ export function useMarkNotificationsRead() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 		},
+	});
+}
+
+// ---------------------------------------------------------------------------
+// Friends at Place
+// ---------------------------------------------------------------------------
+
+export type FriendAtPlace = {
+	user_id: string;
+	username: string;
+	display_name: string | null;
+	avatar_url: string | null;
+};
+
+/**
+ * Get friends (users the current user follows) who have checked in at a place.
+ */
+export function useFriendsAtPlace(placeId: string) {
+	return useQuery<FriendAtPlace[]>({
+		queryKey: ["friends-at-place", placeId],
+		enabled: !!placeId,
+		queryFn: async () => {
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) return [];
+
+			// Get who we follow
+			const { data: follows } = await supabase
+				.from("follows")
+				.select("following_id")
+				.eq("follower_id", user.id);
+
+			const followingIds = (follows ?? []).map((f: { following_id: string }) => f.following_id);
+			if (followingIds.length === 0) return [];
+
+			// Get distinct friend user_ids who checked in at this place
+			const { data: checkInData, error } = await supabase
+				.from("check_ins")
+				.select("user_id")
+				.eq("place_id", placeId)
+				.in("user_id", followingIds);
+			if (error) throw error;
+
+			const uniqueIds = [
+				...new Set((checkInData ?? []).map((r: { user_id: string }) => r.user_id)),
+			];
+			if (uniqueIds.length === 0) return [];
+
+			// Look up profiles separately (no FK from check_ins to profiles)
+			const { data: profiles } = await supabase
+				.from("profiles")
+				.select("id, username, display_name, avatar_url")
+				.in("id", uniqueIds);
+
+			const friends: FriendAtPlace[] = (profiles ?? []).map((p: Record<string, unknown>) => ({
+				user_id: p.id as string,
+				username: (p.username as string) ?? "",
+				display_name: (p.display_name as string) ?? null,
+				avatar_url: (p.avatar_url as string) ?? null,
+			}));
+			return friends;
+		},
+		staleTime: 1000 * 60 * 5,
 	});
 }
 

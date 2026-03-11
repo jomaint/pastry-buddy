@@ -10,7 +10,7 @@ const icons = { Home, Search, PlusCircle, User } as const;
 const items = [
 	{ label: "Feed", href: "/", icon: "Home" as const },
 	{ label: "Discover", href: "/discover", icon: "Search" as const },
-	{ label: "Log", href: "/log", icon: "PlusCircle" as const },
+	{ label: "Add", href: "/add", icon: "PlusCircle" as const },
 	{ label: "Profile", href: "/profile", icon: "User" as const },
 ];
 

@@ -6,6 +6,45 @@ import { useQuery } from "@tanstack/react-query";
 
 const supabase = createClient();
 
+// ---------------------------------------------------------------------------
+// Place Stats
+// ---------------------------------------------------------------------------
+
+export type PlaceStats = {
+	totalCheckIns: number;
+	uniqueVisitors: number;
+	avgRating: number;
+};
+
+/**
+ * Fetch aggregate stats for a place (total check-ins, unique visitors, avg rating).
+ */
+export function usePlaceStats(placeId: string) {
+	return useQuery<PlaceStats>({
+		queryKey: ["place-stats", placeId],
+		enabled: !!placeId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("check_ins")
+				.select("user_id, rating")
+				.eq("place_id", placeId);
+			if (error) throw error;
+
+			const rows = data ?? [];
+			const uniqueUsers = new Set(rows.map((r: { user_id: string }) => r.user_id));
+			const ratings = rows.map((r: { rating: number }) => r.rating).filter((r) => r != null);
+			const avg = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+
+			return {
+				totalCheckIns: rows.length,
+				uniqueVisitors: uniqueUsers.size,
+				avgRating: Math.round(avg * 10) / 10,
+			};
+		},
+		staleTime: 1000 * 60 * 2,
+	});
+}
+
 /** Escape special Postgres ILIKE characters so user input is treated literally. */
 function escapeIlike(input: string): string {
 	return input.replace(/[%_\\]/g, (ch) => `\\${ch}`);
@@ -34,18 +73,25 @@ export function usePlaces(city?: string) {
 }
 
 /**
- * Fetch a single place by slug, including its pastries.
+ * Fetch a single place by ID or slug, including its pastries.
  */
-export function usePlace(slug: string) {
+export function usePlace(idOrSlug: string) {
 	return useQuery<Place & { pastries: Pastry[] }>({
-		queryKey: ["place", slug],
-		enabled: !!slug,
+		queryKey: ["place", idOrSlug],
+		enabled: !!idOrSlug,
 		queryFn: async () => {
-			const { data: place, error: bErr } = await supabase
+			// Try by ID first, then by slug
+			let { data: place, error: bErr } = await supabase
 				.from("places")
 				.select("*")
-				.eq("slug", slug)
+				.eq("id", idOrSlug)
 				.single();
+
+			if (bErr || !place) {
+				const res = await supabase.from("places").select("*").eq("slug", idOrSlug).single();
+				place = res.data;
+				bErr = res.error;
+			}
 			if (bErr) throw bErr;
 
 			const { data: pastries, error: pErr } = await supabase
@@ -77,6 +123,44 @@ export function useSearchPlaces(query: string) {
 				.limit(20);
 			if (error) throw error;
 			return data as Place[];
+		},
+	});
+}
+
+/**
+ * Fetch places that have pastries in a given category, with the matching pastries.
+ */
+export function usePlacesByCategory(category: string | null) {
+	return useQuery<(Place & { pastries: Pastry[] })[]>({
+		queryKey: ["places", "by-category", category],
+		enabled: !!category,
+		queryFn: async () => {
+			// Fetch pastries in this category with their place info
+			const { data, error } = await supabase
+				.from("pastries")
+				.select("*, places!inner(*)")
+				.eq("category", category as string)
+				.order("total_checkins", { ascending: false })
+				.limit(100);
+			if (error) throw error;
+
+			// Group by place
+			const placeMap = new Map<string, Place & { pastries: Pastry[] }>();
+			for (const row of data ?? []) {
+				const place = (row as Record<string, unknown>).places as Place;
+				const pastry = { ...(row as unknown as Pastry) };
+				if (!placeMap.has(place.id)) {
+					placeMap.set(place.id, { ...place, pastries: [] });
+				}
+				placeMap.get(place.id)!.pastries.push(pastry);
+			}
+
+			// Sort places by total pastry check-ins in this category
+			return Array.from(placeMap.values()).sort(
+				(a, b) =>
+					b.pastries.reduce((sum, p) => sum + (p.total_checkins ?? 0), 0) -
+					a.pastries.reduce((sum, p) => sum + (p.total_checkins ?? 0), 0),
+			);
 		},
 	});
 }

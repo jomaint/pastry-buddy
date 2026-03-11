@@ -167,16 +167,13 @@ function ListDetailView({ listId, onBack }: { listId: string; onBack: () => void
 							</div>
 							<div className="flex-1 min-w-0">
 								<Link
-									href={`/pastry/${item.pastry.slug}`}
+									href={`/place/${item.pastry.place_id}?pastry=${item.pastry.id}`}
 									className="text-sm font-medium text-espresso hover:text-brioche transition-colors truncate block"
 								>
 									{item.pastry.name}
 								</Link>
 								<div className="flex items-center gap-2 mt-0.5">
 									<span className="text-xs text-sesame capitalize">{item.pastry.category}</span>
-									{item.pastry.avg_rating && (
-										<Rating value={Math.round(item.pastry.avg_rating)} size="sm" readonly />
-									)}
 								</div>
 							</div>
 							<button

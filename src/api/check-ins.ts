@@ -146,7 +146,14 @@ export function useTasteProfile(userId?: string) {
  */
 export function useTopRatedPastries(userId?: string) {
 	return useQuery<
-		{ pastry_name: string; place_name: string; rating: number; pastry_slug: string }[]
+		{
+			pastry_id: string;
+			pastry_name: string;
+			pastry_slug: string;
+			place_id: string;
+			place_name: string;
+			rating: number;
+		}[]
 	>({
 		queryKey: ["top-rated", userId],
 		enabled: !!userId,
@@ -160,10 +167,12 @@ export function useTopRatedPastries(userId?: string) {
 			if (error) throw error;
 
 			return (data ?? []).map((row: Record<string, unknown>) => ({
+				pastry_id: row.pastry_id as string,
 				pastry_name: row.pastry_name as string,
+				pastry_slug: row.pastry_slug as string,
+				place_id: row.place_id as string,
 				place_name: row.place_name as string,
 				rating: row.rating as number,
-				pastry_slug: row.pastry_slug as string,
 			}));
 		},
 	});
@@ -403,6 +412,55 @@ export function useAutoRankings(userId?: string) {
 			return rankings;
 		},
 		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// ---------------------------------------------------------------------------
+// Place-scoped queries
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch recent check-ins at a specific place.
+ */
+export function usePlaceCheckIns(placeId: string, limit = 20) {
+	return useQuery<FeedItem[]>({
+		queryKey: ["check-ins", "place", placeId, limit],
+		enabled: !!placeId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("feed_view")
+				.select("*")
+				.eq("place_id", placeId)
+				.order("created_at", { ascending: false })
+				.limit(limit);
+			if (error) throw error;
+			return data as FeedItem[];
+		},
+	});
+}
+
+/**
+ * Fetch check-ins for a specific pastry at a specific place.
+ */
+export function usePastryCheckInsAtPlace(
+	pastryId: string,
+	placeId: string,
+	opts?: { enabled?: boolean },
+) {
+	return useQuery<FeedItem[]>({
+		queryKey: ["check-ins", "pastry-at-place", pastryId, placeId],
+		enabled: (opts?.enabled ?? true) && !!pastryId && !!placeId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("feed_view")
+				.select("*")
+				.eq("pastry_id", pastryId)
+				.eq("place_id", placeId)
+				.order("created_at", { ascending: false })
+				.limit(5);
+			if (error) throw error;
+			return data as FeedItem[];
+		},
 	});
 }
 

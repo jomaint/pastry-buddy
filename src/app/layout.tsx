@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 		default: "Pastry Buddy",
 		template: "%s | Pastry Buddy",
 	},
-	description: "Discover, log, and rank your favorite pastries",
+	description: "Discover, rate, and rank your favorite pastries",
 	manifest: "/manifest.json",
 	appleWebApp: {
 		capable: true,

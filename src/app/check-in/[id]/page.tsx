@@ -66,7 +66,7 @@ export default function CheckInDetailPage({
 				{/* Pastry info */}
 				<div>
 					<Link
-						href={`/pastry/${checkin.pastry_id}`}
+						href={`/place/${checkin.place_id}?pastry=${checkin.pastry_id}`}
 						className="font-display text-2xl text-espresso transition-colors duration-150 hover:text-brioche"
 					>
 						{checkin.pastry_name}
@@ -120,10 +120,10 @@ export default function CheckInDetailPage({
 					<LikeButton checkInId={id} />
 					<ShareButton checkInId={id} pastryName={checkin.pastry_name} />
 					<Link
-						href={`/pastry/${checkin.pastry_id}`}
+						href={`/place/${checkin.place_id}`}
 						className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[14px] bg-brioche/10 px-5 text-sm font-medium text-brioche transition-colors duration-150 hover:bg-brioche/20"
 					>
-						View Pastry
+						View at {checkin.place_name}
 					</Link>
 				</div>
 

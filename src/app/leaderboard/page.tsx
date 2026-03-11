@@ -9,6 +9,7 @@ import {
 	useTopPlaces,
 	useUserRank,
 } from "@/api/leaderboards";
+import { usePastries } from "@/api/pastries";
 import { Avatar } from "@/components/ui/Avatar";
 import { PageTransition, ScrollReveal } from "@/components/ui/PageTransition";
 import { StatsSkeleton } from "@/components/ui/Skeleton";
@@ -80,6 +81,9 @@ export default function LeaderboardPage() {
 		timeframe,
 	);
 	const { data: userRank } = useUserRank(auth?.user?.id);
+	const { data: allPastries } = usePastries({ limit: 200 });
+	const getPlaceIdForPastry = (pastryId: string) =>
+		allPastries?.find((p) => p.id === pastryId)?.place_id ?? "";
 
 	usePageView("/leaderboard");
 
@@ -250,17 +254,9 @@ export default function LeaderboardPage() {
 											{place.place_city} · {place.unique_visitors} visitors
 										</p>
 									</div>
-									<div className="flex flex-col items-end gap-0.5">
-										<div className="flex items-center gap-1">
-											<Star size={11} className="fill-caramel text-caramel" />
-											<span className="text-xs font-medium text-espresso tabular-nums">
-												{place.avg_rating.toFixed(1)}
-											</span>
-										</div>
-										<span className="text-[10px] text-sesame tabular-nums">
-											{place.checkin_count} check-ins
-										</span>
-									</div>
+									<span className="text-xs font-medium text-sesame tabular-nums">
+										{place.checkin_count} check-ins
+									</span>
 								</Link>
 							</ScrollReveal>
 						))
@@ -280,7 +276,7 @@ export default function LeaderboardPage() {
 						topPastries.map((pastry) => (
 							<ScrollReveal key={pastry.pastry_id}>
 								<Link
-									href={`/pastry/${pastry.pastry_id}`}
+									href={`/place/${getPlaceIdForPastry(pastry.pastry_id)}?pastry=${pastry.pastry_id}`}
 									className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
 								>
 									<RankBadge rank={pastry.rank} />
@@ -292,17 +288,9 @@ export default function LeaderboardPage() {
 											{pastry.place_name} · {pastry.pastry_category}
 										</p>
 									</div>
-									<div className="flex flex-col items-end gap-0.5">
-										<div className="flex items-center gap-1">
-											<Star size={11} className="fill-caramel text-caramel" />
-											<span className="text-xs font-medium text-espresso tabular-nums">
-												{pastry.avg_rating.toFixed(1)}
-											</span>
-										</div>
-										<span className="text-[10px] text-sesame tabular-nums">
-											{pastry.checkin_count} check-ins
-										</span>
-									</div>
+									<span className="text-xs font-medium text-sesame tabular-nums">
+										{pastry.checkin_count} check-ins
+									</span>
 								</Link>
 							</ScrollReveal>
 						))

@@ -8,11 +8,10 @@ import {
 	useSearchPastries,
 	useTrendingPastries,
 } from "@/api/pastries";
-import { useNearbyPlaces, usePlaces, useSearchPlaces } from "@/api/places";
+import { useNearbyPlaces, usePlaces, usePlacesByCategory, useSearchPlaces } from "@/api/places";
 import { usePersonalizedFeed } from "@/api/recommendations";
 import type { RecommendedPastry } from "@/api/recommendations";
 import { PastryCard } from "@/components/pastry/PastryCard";
-import { InlineRating } from "@/components/ui/InlineRating";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/ui/PageTransition";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { PastryCardSkeleton } from "@/components/ui/Skeleton";
@@ -126,10 +125,12 @@ const TABS: { id: DiscoverTab; label: string; icon: typeof Sparkles }[] = [
 
 function RecommendationCard({
 	rec,
+	placeId,
 	onToggleBookmark,
 	isSaving,
 }: {
 	rec: RecommendedPastry;
+	placeId?: string;
 	onToggleBookmark: (pastryId: string) => void;
 	isSaving: boolean;
 }) {
@@ -146,7 +147,7 @@ function RecommendationCard({
 
 	return (
 		<Link
-			href={`/pastry/${rec.pastry_id}`}
+			href={placeId ? `/place/${placeId}?pastry=${rec.pastry_id}` : `/discover`}
 			className="group flex items-stretch gap-4 rounded-card bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.99]"
 		>
 			{/* Left: info */}
@@ -171,23 +172,11 @@ function RecommendationCard({
 				)}
 			</div>
 
-			{/* Right: rating + actions */}
+			{/* Right: actions */}
 			<div className="flex shrink-0 flex-col items-end justify-between">
-				<div className="flex flex-col items-end gap-1">
-					{rec.avg_rating != null && rec.avg_rating > 0 && (
-						<div className="flex items-center gap-1">
-							<Star size={12} className="fill-brioche text-brioche" />
-							<span className="font-body text-sm font-medium tabular-nums text-espresso">
-								{rec.avg_rating.toFixed(1)}
-							</span>
-						</div>
-					)}
-					{rec.total_checkins > 0 && (
-						<span className="text-[11px] tabular-nums text-sesame">
-							{rec.total_checkins} check-in{rec.total_checkins !== 1 ? "s" : ""}
-						</span>
-					)}
-				</div>
+				<span className="rounded-chip bg-parchment/60 px-2 py-0.5 text-[11px] font-medium text-sesame">
+					{rec.pastry_category}
+				</span>
 
 				<button
 					type="button"
@@ -220,10 +209,13 @@ function ForYouTab() {
 	} = useTrendingPastries(8);
 	const { data: featured } = useFeaturedPastries(8);
 	const { data: allPlaces } = usePlaces();
+	const { data: allPastries } = usePastries({ limit: 200 });
 
 	const toggleBookmark = useToggleBookmark();
 
 	const getPlaceName = (placeId: string) => allPlaces?.find((p) => p.id === placeId)?.name ?? "";
+	const getPlaceId = (pastryId: string) =>
+		allPastries?.find((p) => p.id === pastryId)?.place_id ?? "";
 
 	// For unauthenticated: fall back to trending/featured
 	const trendingDisplay =
@@ -260,6 +252,7 @@ function ForYouTab() {
 								<StaggerItem key={rec.pastry_id}>
 									<RecommendationCard
 										rec={rec}
+										placeId={getPlaceId(rec.pastry_id)}
 										onToggleBookmark={handleBookmarkToggle}
 										isSaving={toggleBookmark.isPending}
 									/>
@@ -276,10 +269,10 @@ function ForYouTab() {
 								recommendations.
 							</p>
 							<Link
-								href="/log"
+								href="/add"
 								className="golden-gradient mt-1 inline-flex items-center gap-1.5 rounded-button px-4 py-2 text-sm font-medium text-flour transition-opacity hover:opacity-90"
 							>
-								Log your first pastry
+								Check in your first pastry
 							</Link>
 						</div>
 					)}
@@ -324,9 +317,8 @@ function ForYouTab() {
 									id={pastry.id}
 									name={pastry.name}
 									placeName={getPlaceName(pastry.place_id)}
+									placeId={pastry.place_id}
 									category={pastry.category}
-									avgRating={pastry.avg_rating}
-									totalCheckins={pastry.total_checkins}
 								/>
 							</StaggerItem>
 						))}
@@ -501,12 +493,9 @@ function SearchTab() {
 	const [query, setQuery] = useState("");
 	const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-	const { data: allPlaces } = usePlaces();
 	const { data: searchedPastries } = useSearchPastries(query);
 	const { data: searchedPlaces } = useSearchPlaces(query);
-	const { data: categoryPastries } = usePastries(
-		activeCategory ? { category: activeCategory, sort: "checkins", limit: 50 } : undefined,
-	);
+	const { data: categoryPlaces, isLoading: categoryLoading } = usePlacesByCategory(activeCategory);
 
 	const trackEvent = useTrackEvent();
 	const searchTracked = useRef("");
@@ -518,11 +507,10 @@ function SearchTab() {
 		}
 	}, [query, trackEvent]);
 
-	const getPlaceName = (placeId: string) => allPlaces?.find((b) => b.id === placeId)?.name ?? "";
-
 	const hasSearchResults = query.length >= 2 && (searchedPastries || searchedPlaces);
-	const hasCategoryResults = activeCategory && categoryPastries;
-	const showingResults = hasSearchResults || hasCategoryResults;
+	const hasCategoryResults = activeCategory && categoryPlaces;
+	const showingResults =
+		hasSearchResults || hasCategoryResults || (activeCategory && categoryLoading);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -600,7 +588,7 @@ function SearchTab() {
 							{searchedPastries.map((pastry) => (
 								<Link
 									key={pastry.id}
-									href={`/pastry/${pastry.id}`}
+									href={`/place/${pastry.place_id}?pastry=${pastry.id}`}
 									className="flex items-center gap-3 rounded-card bg-flour p-3 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
 								>
 									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-parchment">
@@ -613,7 +601,9 @@ function SearchTab() {
 										</p>
 									</div>
 									<div className="shrink-0">
-										<InlineRating value={pastry.avg_rating} />
+										<span className="rounded-chip bg-parchment/60 px-2 py-0.5 text-[11px] font-medium text-sesame">
+											{pastry.category}
+										</span>
 									</div>
 								</Link>
 							))}
@@ -622,24 +612,58 @@ function SearchTab() {
 				</section>
 			)}
 
-			{/* Category results */}
+			{/* Category results — show places that serve this category */}
+			{activeCategory && categoryLoading && (
+				<div className="flex flex-col gap-3">
+					{[1, 2, 3].map((i) => (
+						<div key={i} className="h-24 animate-pulse rounded-card bg-parchment/60" />
+					))}
+				</div>
+			)}
 			{hasCategoryResults && (
 				<section className="flex flex-col gap-3">
 					<p className="text-xs font-medium uppercase tracking-wide text-sesame">
-						{categoryPastries.length} {activeCategory} pastries
+						{categoryPlaces.length} place{categoryPlaces.length !== 1 ? "s" : ""} with{" "}
+						{activeCategory}
 					</p>
-					<StaggerContainer className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-						{categoryPastries.map((pastry) => (
-							<StaggerItem key={pastry.id}>
-								<PastryCard
-									id={pastry.id}
-									name={pastry.name}
-									placeName={getPlaceName(pastry.place_id)}
-									category={pastry.category}
-									avgRating={pastry.avg_rating}
-									totalCheckins={pastry.total_checkins}
-									photoUrl={pastry.photo_url}
-								/>
+					<StaggerContainer className="flex flex-col gap-3">
+						{categoryPlaces.map((place) => (
+							<StaggerItem key={place.id}>
+								<Link
+									href={`/place/${place.id}`}
+									className="flex flex-col gap-3 rounded-card bg-flour p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+								>
+									<div className="flex items-center gap-3">
+										<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brioche/10">
+											<MapPin size={16} className="text-brioche" />
+										</div>
+										<div className="min-w-0 flex-1">
+											<p className="truncate font-display text-base text-espresso">{place.name}</p>
+											<p className="truncate text-xs text-sesame">
+												{[place.address, place.city].filter(Boolean).join(", ")}
+											</p>
+										</div>
+										<span className="shrink-0 text-xs font-medium text-brioche">
+											{place.pastries.length} item
+											{place.pastries.length !== 1 ? "s" : ""}
+										</span>
+									</div>
+									<div className="flex gap-2 overflow-x-auto no-scrollbar">
+										{place.pastries.slice(0, 4).map((pastry) => (
+											<span
+												key={pastry.id}
+												className="shrink-0 rounded-chip bg-parchment/60 px-2.5 py-1 text-xs font-medium text-ganache"
+											>
+												{pastry.name}
+											</span>
+										))}
+										{place.pastries.length > 4 && (
+											<span className="shrink-0 rounded-chip bg-parchment/40 px-2.5 py-1 text-xs text-sesame">
+												+{place.pastries.length - 4} more
+											</span>
+										)}
+									</div>
+								</Link>
 							</StaggerItem>
 						))}
 					</StaggerContainer>

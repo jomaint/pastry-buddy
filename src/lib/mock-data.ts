@@ -1027,7 +1027,9 @@ export function getPastry(id: string) {
 
 // Trending: top pastries by check-in count
 export function getTrendingPastries(limit = 6) {
-	return [...PASTRIES].sort((a, b) => b.total_checkins - a.total_checkins).slice(0, limit);
+	return [...PASTRIES]
+		.sort((a, b) => (b.total_checkins ?? 0) - (a.total_checkins ?? 0))
+		.slice(0, limit);
 }
 
 // Search pastries and places

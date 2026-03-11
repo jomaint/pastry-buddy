@@ -47,7 +47,7 @@ export default function SignUpPage() {
 					<div className="text-center">
 						<h1 className="font-display text-3xl text-espresso">Join Pastry Buddy</h1>
 						<p className="mt-2 text-sm text-sesame">
-							Start discovering and logging your favorite pastries
+							Start discovering and rating your favorite pastries
 						</p>
 					</div>
 

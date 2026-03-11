@@ -99,10 +99,9 @@ export function useAdminCheckIns(opts: PaginationOpts = {}) {
 
 			let query = supabase
 				.from("check_ins")
-				.select(
-					"*, profiles!check_ins_user_id_fkey(username, display_name), pastries!inner(name, category), places!inner(name, city)",
-					{ count: "exact" },
-				)
+				.select("*, pastries!inner(name, category), places!inner(name, city)", {
+					count: "exact",
+				})
 				.order("created_at", { ascending: false })
 				.range(from, to);
 
@@ -110,9 +109,75 @@ export function useAdminCheckIns(opts: PaginationOpts = {}) {
 				query = query.ilike("notes", `%${search}%`);
 			}
 
-			const { data, error, count } = await query;
+			const { data: rows, error, count } = await query;
 			if (error) throw error;
-			return { data: (data ?? []) as AdminCheckIn[], count: count ?? 0 };
+
+			// Look up profiles separately (check_ins.user_id FKs to auth.users, not profiles)
+			const userIds = [...new Set((rows ?? []).map((r: { user_id: string }) => r.user_id))];
+			const { data: profiles } =
+				userIds.length > 0
+					? await supabase.from("profiles").select("id, username, display_name").in("id", userIds)
+					: { data: [] };
+
+			const profileMap = new Map(
+				(profiles ?? []).map((p: Record<string, unknown>) => [p.id as string, p]),
+			);
+
+			const data = (rows ?? []).map((row: Record<string, unknown>) => {
+				const profile = profileMap.get(row.user_id as string) as
+					| Record<string, unknown>
+					| undefined;
+				return {
+					...row,
+					profiles: {
+						username: (profile?.username as string) ?? "",
+						display_name: (profile?.display_name as string) ?? null,
+					},
+				};
+			});
+
+			return { data: data as AdminCheckIn[], count: count ?? 0 };
+		},
+	});
+}
+
+export type AdminMapPlace = Place & {
+	pastry_count: number;
+	checkin_count: number;
+};
+
+/**
+ * Fetch ALL places (for map view) with activity counts.
+ */
+export function useAdminAllPlaces(search?: string) {
+	return useQuery<AdminMapPlace[]>({
+		queryKey: ["admin", "all-places", search],
+		queryFn: async () => {
+			let query = supabase
+				.from("places")
+				.select(
+					"id, name, slug, address, city, country, latitude, longitude, created_at, created_by, google_place_id, photo_url, pastries(count), check_ins(count)",
+				)
+				.order("name", { ascending: true });
+
+			if (search) {
+				query = query.ilike("name", `%${search}%`);
+			}
+
+			const { data, error } = await query;
+			if (error) throw error;
+
+			return (data ?? []).map((row: Record<string, unknown>) => ({
+				...row,
+				pastry_count:
+					Array.isArray(row.pastries) && row.pastries[0]
+						? Number((row.pastries[0] as Record<string, unknown>).count)
+						: 0,
+				checkin_count:
+					Array.isArray(row.check_ins) && row.check_ins[0]
+						? Number((row.check_ins[0] as Record<string, unknown>).count)
+						: 0,
+			})) as AdminMapPlace[];
 		},
 	});
 }

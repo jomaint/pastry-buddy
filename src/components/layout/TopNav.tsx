@@ -11,7 +11,7 @@ const icons = { Home, Search, PlusCircle, User } as const;
 const items = [
 	{ label: "Feed", href: "/", icon: "Home" as const },
 	{ label: "Discover", href: "/discover", icon: "Search" as const },
-	{ label: "Log", href: "/log", icon: "PlusCircle" as const },
+	{ label: "Add", href: "/add", icon: "PlusCircle" as const },
 	{ label: "Profile", href: "/profile", icon: "User" as const },
 ];
 
@@ -44,7 +44,7 @@ export function TopNav() {
 				{items.map((item) => {
 					const Icon = icons[item.icon];
 					const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-					const isLog = item.icon === "PlusCircle";
+					const isAdd = item.icon === "PlusCircle";
 
 					return (
 						<Link
@@ -56,15 +56,15 @@ export function TopNav() {
 								"relative flex items-center justify-center gap-1.5 min-h-[44px] min-w-[44px] rounded-full px-3.5",
 								"transition-all duration-150",
 								"focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brioche",
-								isLog && !isActive && "text-brioche hover:bg-brioche/10",
-								isLog && isActive && "bg-brioche text-flour",
-								!isLog && isActive && "bg-brioche/10 text-brioche",
-								!isLog && !isActive && "text-sesame hover:text-ganache hover:bg-parchment/50",
+								isAdd && !isActive && "text-brioche hover:bg-brioche/10",
+								isAdd && isActive && "bg-brioche text-flour",
+								!isAdd && isActive && "bg-brioche/10 text-brioche",
+								!isAdd && !isActive && "text-sesame hover:text-ganache hover:bg-parchment/50",
 							)}
 						>
-							<Icon size={18} strokeWidth={isActive || isLog ? 2.25 : 1.75} />
+							<Icon size={18} strokeWidth={isActive || isAdd ? 2.25 : 1.75} />
 							<span
-								className={clsx("text-[13px]", isActive || isLog ? "font-medium" : "font-normal")}
+								className={clsx("text-[13px]", isActive || isAdd ? "font-medium" : "font-normal")}
 							>
 								{item.label}
 							</span>

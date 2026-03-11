@@ -1,4 +1,3 @@
-import { InlineRating } from "@/components/ui/InlineRating";
 import { TasteMatchPill } from "@/components/ui/TasteMatchPill";
 import { Croissant } from "lucide-react";
 import Image from "next/image";
@@ -8,9 +7,8 @@ interface PastryCardProps {
 	id: string;
 	name: string;
 	placeName?: string;
+	placeId: string;
 	category: string;
-	avgRating: number | null;
-	totalCheckins?: number;
 	showTasteMatch?: boolean;
 	photoUrl?: string | null;
 }
@@ -19,18 +17,17 @@ export function PastryCard({
 	id,
 	name,
 	placeName,
+	placeId,
 	category,
-	avgRating,
-	totalCheckins,
 	showTasteMatch = true,
 	photoUrl,
 }: PastryCardProps) {
 	return (
 		<Link
-			href={`/pastry/${id}`}
-			className="flex flex-col gap-2 rounded-[16px] bg-flour p-3 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
+			href={`/place/${placeId}?pastry=${id}`}
+			className="flex flex-col gap-2 rounded-card bg-flour p-3 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
 		>
-			<div className="relative aspect-square w-full overflow-hidden rounded-[12px] bg-parchment">
+			<div className="relative aspect-square w-full overflow-hidden rounded-input bg-parchment">
 				{photoUrl ? (
 					<Image
 						src={photoUrl}
@@ -45,10 +42,13 @@ export function PastryCard({
 					</div>
 				)}
 			</div>
-			<p className="truncate text-sm font-medium text-espresso">{name}</p>
-			{placeName && <p className="truncate text-xs text-sesame">{placeName}</p>}
+			{/* Place-first hierarchy */}
+			{placeName && <p className="truncate text-sm font-medium text-espresso">{placeName}</p>}
+			<p className="truncate text-xs text-sesame">{name}</p>
 			<div className="flex items-center justify-between">
-				<InlineRating value={avgRating} count={totalCheckins} />
+				<span className="rounded-chip bg-parchment/60 px-2 py-0.5 text-[11px] font-medium text-sesame">
+					{category}
+				</span>
 				{showTasteMatch && <TasteMatchPill category={category} />}
 			</div>
 		</Link>

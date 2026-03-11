@@ -35,7 +35,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Step = "place" | "pastry" | "rate" | "done";
 
-export default function LogPage() {
+export default function AddPage() {
 	const [step, setStep] = useState<Step>("place");
 
 	// Place selection
@@ -70,7 +70,7 @@ export default function LogPage() {
 	const { data: auth } = useAuth();
 	const trackEvent = useTrackEvent();
 
-	usePageView("/log");
+	usePageView("/add");
 
 	// Supabase hooks
 	const { data: popularPlaces } = usePlaces();
@@ -193,8 +193,6 @@ export default function LogPage() {
 			category: "Pastries",
 			description: null,
 			photo_url: null,
-			avg_rating: 0,
-			total_checkins: 0,
 			featured: false,
 			created_by: "user",
 			created_at: new Date().toISOString(),
@@ -241,7 +239,7 @@ export default function LogPage() {
 			if (!result.success) {
 				toast.show({
 					type: "error",
-					title: "Create an account to keep logging",
+					title: "Create an account to keep checking in",
 					description: "Sign up to save your journal and get personalized recommendations",
 				});
 				return;
@@ -293,7 +291,7 @@ export default function LogPage() {
 						toast.show({
 							type: "badge",
 							title: "Regular!",
-							description: "10 pastries logged — you're a regular now",
+							description: "10 pastries — you're a regular now",
 							icon: "🏅",
 						});
 					} else if (totalCheckins === 50) {
@@ -374,7 +372,7 @@ export default function LogPage() {
 								<ArrowLeft size={16} />
 							</button>
 						)}
-						<h1 className="font-display text-2xl text-espresso">Log a Pastry</h1>
+						<h1 className="font-display text-2xl text-espresso">Check In</h1>
 					</div>
 
 					{/* Step indicator */}
@@ -609,14 +607,6 @@ export default function LogPage() {
 												{!isFromSelected && placeName ? ` · ${placeName}` : ""}
 											</p>
 										</div>
-										{(pastry.avg_rating ?? 0) > 0 && (
-											<div className="flex items-center gap-0.5 shrink-0">
-												<Star size={11} className="fill-caramel text-caramel" />
-												<span className="text-xs font-medium text-caramel tabular-nums">
-													{pastry.avg_rating?.toFixed(1)}
-												</span>
-											</div>
-										)}
 										<ChevronRight size={14} className="shrink-0 text-sesame" />
 									</button>
 								);
@@ -715,13 +705,13 @@ export default function LogPage() {
 									);
 								})}
 							</div>
-							{rating > 0 && (
+							{(hoverRating || rating) > 0 && (
 								<p className="text-xs text-sesame">
-									{rating === 1 && "Not for me"}
-									{rating === 2 && "It was okay"}
-									{rating === 3 && "Pretty good"}
-									{rating === 4 && "Really good"}
-									{rating === 5 && "Incredible"}
+									{(hoverRating || rating) === 1 && "Not for me"}
+									{(hoverRating || rating) === 2 && "It was okay"}
+									{(hoverRating || rating) === 3 && "Pretty good"}
+									{(hoverRating || rating) === 4 && "Loved it"}
+									{(hoverRating || rating) === 5 && "Life-changing"}
 								</p>
 							)}
 						</div>
@@ -847,7 +837,7 @@ export default function LogPage() {
 							<Sparkles size={28} className="text-pistachio" />
 						</motion.div>
 						<div className="flex flex-col gap-1">
-							<h2 className="font-display text-2xl text-espresso">Logged!</h2>
+							<h2 className="font-display text-2xl text-espresso">Checked in!</h2>
 							<p className="text-sm text-ganache">
 								<span className="font-medium">{selectedPastry.name}</span> at{" "}
 								<span className="font-medium">{selectedPlace.name}</span>
@@ -892,7 +882,7 @@ export default function LogPage() {
 								className="flex h-10 items-center gap-1.5 rounded-[14px] bg-parchment/60 px-5 text-sm font-medium text-ganache transition-colors hover:bg-parchment"
 							>
 								<Plus size={14} />
-								Log another
+								Check in another
 							</button>
 						)}
 					</motion.div>
