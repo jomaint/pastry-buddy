@@ -43,10 +43,11 @@ create index idx_pastries_place on pastries (place_id);
 create index idx_checkins_place on check_ins (place_id);
 
 -- ============================================================
--- 4. RECREATE feed_view
+-- 4. RECREATE feed_view (must DROP first — column renames not allowed)
 -- ============================================================
 
-create or replace view feed_view as
+drop view if exists feed_view;
+create view feed_view as
 select
   ci.id,
   ci.user_id,

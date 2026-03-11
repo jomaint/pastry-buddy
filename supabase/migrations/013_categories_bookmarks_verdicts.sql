@@ -8,8 +8,8 @@
 CREATE TABLE IF NOT EXISTS bookmarks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  pastry_id UUID NOT NULL REFERENCES pastries(id) ON DELETE CASCADE,
-  place_id UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  pastry_id TEXT NOT NULL REFERENCES pastries(id) ON DELETE CASCADE,
+  place_id TEXT NOT NULL REFERENCES places(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(user_id, pastry_id)
 );
@@ -29,8 +29,8 @@ CREATE POLICY "Users can manage their own bookmarks"
 CREATE TABLE IF NOT EXISTS user_item_verdicts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  pastry_id UUID NOT NULL REFERENCES pastries(id) ON DELETE CASCADE,
-  place_id UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  pastry_id TEXT NOT NULL REFERENCES pastries(id) ON DELETE CASCADE,
+  place_id TEXT NOT NULL REFERENCES places(id) ON DELETE CASCADE,
   verdict TEXT NOT NULL CHECK (verdict IN ('go_to', 'overrated', 'worth_the_detour', 'one_and_done', 'hidden_gem')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
