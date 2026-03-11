@@ -1,6 +1,6 @@
 export type {
 	Profile,
-	Bakery,
+	Place,
 	Pastry,
 	CheckIn,
 	List,
@@ -8,4 +8,7 @@ export type {
 	Badge,
 	UserBadge,
 	Follow,
+	Bookmark,
+	UserItemVerdict,
+	VerdictLabel,
 } from "./database";

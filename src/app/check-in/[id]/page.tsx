@@ -74,12 +74,12 @@ export default function CheckInDetailPage({
 					<div className="mt-1.5 flex items-center gap-1.5">
 						<MapPin size={14} className="text-sesame" />
 						<Link
-							href={`/bakery/${checkin.bakery_id}`}
+							href={`/place/${checkin.place_id}`}
 							className="text-sm text-brioche transition-colors duration-150 hover:text-brioche/80"
 						>
-							{checkin.bakery_name}
+							{checkin.place_name}
 						</Link>
-						<span className="text-sm text-sesame">· {checkin.bakery_city}</span>
+						<span className="text-sm text-sesame">· {checkin.place_city}</span>
 					</div>
 				</div>
 

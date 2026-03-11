@@ -4,10 +4,10 @@ import { useAuth } from "@/api/auth";
 import { useBadgeStats, useTasteProfile, useTopRatedPastries } from "@/api/check-ins";
 import { useLists } from "@/api/lists";
 import {
-	useBakeriesVisited,
 	useFollow,
 	useFollowCounts,
 	useIsFollowing,
+	usePlacesVisited,
 	useProfileByUsername,
 	useUnfollow,
 } from "@/api/profiles";
@@ -33,7 +33,7 @@ export default function PublicProfilePage({
 	const { username } = use(params);
 	const { data: profile, isLoading } = useProfileByUsername(username);
 	const { data: auth } = useAuth();
-	const { data: bakeriesVisited } = useBakeriesVisited(profile?.id ?? "");
+	const { data: placesVisited } = usePlacesVisited(profile?.id ?? "");
 	const { data: followCounts } = useFollowCounts(profile?.id ?? "");
 	const { data: isFollowing } = useIsFollowing(profile?.id ?? "");
 	const { data: tasteProfile } = useTasteProfile(profile?.id);
@@ -58,7 +58,7 @@ export default function PublicProfilePage({
 		if (!profile) return [];
 		return evaluateBadges(BADGES, {
 			totalCheckins: profile.total_checkins,
-			bakeriesVisited: bakeriesVisited ?? 0,
+			placesVisited: placesVisited ?? 0,
 			followers: followCounts?.followers ?? 0,
 			following: followCounts?.following ?? 0,
 			listsCount: lists?.length ?? 0,
@@ -66,7 +66,7 @@ export default function PublicProfilePage({
 			hasPerfectRating: badgeStats?.hasPerfectRating ?? false,
 			categoryCheckins: badgeStats?.categoryCheckins ?? {},
 		});
-	}, [profile, bakeriesVisited, followCounts, lists, streak, badgeStats]);
+	}, [profile, placesVisited, followCounts, lists, streak, badgeStats]);
 
 	const unlockedBadges = badgeStatuses.filter((b) => b.unlocked);
 
@@ -90,7 +90,7 @@ export default function PublicProfilePage({
 
 	const stats = [
 		{ label: "Logged", value: profile.total_checkins },
-		{ label: "Bakeries", value: bakeriesVisited ?? 0 },
+		{ label: "Places", value: placesVisited ?? 0 },
 		{ label: "Following", value: followCounts?.following ?? 0 },
 		{ label: "Followers", value: followCounts?.followers ?? 0 },
 	];
@@ -214,7 +214,7 @@ export default function PublicProfilePage({
 								</span>
 								<div className="flex-1 min-w-0">
 									<p className="text-sm font-medium text-espresso truncate">{item.pastry_name}</p>
-									<p className="text-xs text-sesame truncate">{item.bakery_name}</p>
+									<p className="text-xs text-sesame truncate">{item.place_name}</p>
 								</div>
 								<Rating value={item.rating} size="sm" readonly />
 							</Link>

@@ -4,7 +4,7 @@ import { useTrackEvent } from "@/hooks/use-track-event";
 import { useEffect } from "react";
 
 type Props = {
-	event: "pastry_viewed" | "bakery_viewed" | "page_view";
+	event: "pastry_viewed" | "place_viewed" | "page_view";
 	properties?: Record<string, unknown>;
 };
 

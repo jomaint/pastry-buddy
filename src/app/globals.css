@@ -30,6 +30,18 @@
 	--radius-input: 12px;
 	--radius-chip: 9999px;
 	--radius-sheet: 24px;
+
+	/* Custom animation for skeleton shimmer */
+	--animate-shimmer: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
 }
 
 @layer base {

@@ -48,7 +48,7 @@ const MapInner = dynamic(
 	},
 );
 
-export function BakeryMap({ lat, lng, name }: { lat: number; lng: number; name: string }) {
+export function PlaceMap({ lat, lng, name }: { lat: number; lng: number; name: string }) {
 	return (
 		<div className="h-[240px] w-full overflow-hidden rounded-[16px]">
 			<MapInner lat={lat} lng={lng} name={name} />

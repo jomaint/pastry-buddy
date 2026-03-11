@@ -24,7 +24,7 @@ export function SimilarPastries({ pastryId }: { pastryId: string }) {
 						</div>
 						<p className="truncate text-sm font-medium text-espresso">{pastry.pastry_name}</p>
 						<p className="truncate text-xs text-sesame">
-							{pastry.bakery_name} · {pastry.bakery_city}
+							{pastry.place_name} · {pastry.place_city}
 						</p>
 						{pastry.avg_rating && (
 							<div className="flex items-center gap-1">

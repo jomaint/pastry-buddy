@@ -4,7 +4,8 @@ import { useCreateList, useList, useLists, useRemoveFromList } from "@/api/lists
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
-import { PageTransition } from "@/components/ui/PageTransition";
+import { PageTransition, ScrollReveal } from "@/components/ui/PageTransition";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { Rating } from "@/components/ui/Rating";
 import { ListCardSkeleton } from "@/components/ui/Skeleton";
 import { usePageView } from "@/hooks/use-page-view";
@@ -26,77 +27,83 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function ListsPage() {
-	const { data: lists, isLoading } = useLists();
+	const { data: lists, isLoading, refetch: refetchLists } = useLists();
 	const [selectedListId, setSelectedListId] = useState<string | null>(null);
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const trackEvent = useTrackEvent();
 	usePageView("/lists");
+
+	const handleRefresh = async () => {
+		await refetchLists();
+	};
 
 	if (selectedListId) {
 		return <ListDetailView listId={selectedListId} onBack={() => setSelectedListId(null)} />;
 	}
 
 	return (
-		<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-3xl lg:py-8">
-			<div className="flex items-center justify-between">
-				<h1 className="font-display text-3xl text-espresso">Your Lists</h1>
-				<Button size="sm" onClick={() => setShowCreateModal(true)}>
-					<Plus size={14} />
-					New List
-				</Button>
-			</div>
-
-			{isLoading ? (
-				<div className="flex flex-col gap-2">
-					{[1, 2, 3].map((i) => (
-						<ListCardSkeleton key={i} />
-					))}
+		<PullToRefresh onRefresh={handleRefresh}>
+			<PageTransition className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 lg:max-w-3xl lg:py-8">
+				<div className="flex items-center justify-between">
+					<h1 className="font-display text-3xl text-espresso">Your Lists</h1>
+					<Button size="sm" onClick={() => setShowCreateModal(true)}>
+						<Plus size={14} />
+						New List
+					</Button>
 				</div>
-			) : lists && lists.length > 0 ? (
-				<div className="flex flex-col gap-2">
-					{lists.map((list) => (
-						<button
-							key={list.id}
-							type="button"
-							onClick={() => setSelectedListId(list.id)}
-							className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-colors hover:bg-parchment/40 text-left"
-						>
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-parchment/60">
-								<Bookmark size={16} className="text-brioche" />
-							</div>
-							<div className="flex-1 min-w-0">
-								<p className="text-sm font-medium text-espresso truncate">{list.name}</p>
-								{list.description && (
-									<p className="text-xs text-sesame truncate mt-0.5">{list.description}</p>
-								)}
-							</div>
-							<div className="flex items-center gap-2">
-								{list.is_public ? (
-									<Globe size={12} className="text-sesame" />
-								) : (
-									<Lock size={12} className="text-sesame" />
-								)}
-								<ChevronRight size={14} className="text-sesame" />
-							</div>
-						</button>
-					))}
-				</div>
-			) : (
-				<EmptyState
-					icon={<Croissant size={24} className="text-brioche/40" />}
-					title="No lists yet"
-					description="Create lists to organize your favorite pastries and share them with friends"
-					action={
-						<Button onClick={() => setShowCreateModal(true)}>
-							<Plus size={14} />
-							Create your first list
-						</Button>
-					}
-				/>
-			)}
 
-			{showCreateModal && <CreateListModal onClose={() => setShowCreateModal(false)} />}
-		</PageTransition>
+				{isLoading ? (
+					<div className="flex flex-col gap-2">
+						{[1, 2, 3].map((i) => (
+							<ListCardSkeleton key={i} />
+						))}
+					</div>
+				) : lists && lists.length > 0 ? (
+					<div className="flex flex-col gap-2">
+						{lists.map((list) => (
+							<button
+								key={list.id}
+								type="button"
+								onClick={() => setSelectedListId(list.id)}
+								className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-colors hover:bg-parchment/40 text-left"
+							>
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-parchment/60">
+									<Bookmark size={16} className="text-brioche" />
+								</div>
+								<div className="flex-1 min-w-0">
+									<p className="text-sm font-medium text-espresso truncate">{list.name}</p>
+									{list.description && (
+										<p className="text-xs text-sesame truncate mt-0.5">{list.description}</p>
+									)}
+								</div>
+								<div className="flex items-center gap-2">
+									{list.is_public ? (
+										<Globe size={12} className="text-sesame" />
+									) : (
+										<Lock size={12} className="text-sesame" />
+									)}
+									<ChevronRight size={14} className="text-sesame" />
+								</div>
+							</button>
+						))}
+					</div>
+				) : (
+					<EmptyState
+						icon={<Croissant size={24} className="text-brioche/40" />}
+						title="No lists yet"
+						description="Create lists to organize your favorite pastries and share them with friends"
+						action={
+							<Button onClick={() => setShowCreateModal(true)}>
+								<Plus size={14} />
+								Create your first list
+							</Button>
+						}
+					/>
+				)}
+
+				{showCreateModal && <CreateListModal onClose={() => setShowCreateModal(false)} />}
+			</PageTransition>
+		</PullToRefresh>
 	);
 }
 

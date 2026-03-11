@@ -1,17 +1,16 @@
 "use client";
 
 import clsx from "clsx";
-import { Bookmark, ChevronLeft, ChevronRight, Home, PlusCircle, Search, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home, PlusCircle, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const icons = { Home, Search, PlusCircle, Bookmark, User } as const;
+const icons = { Home, Search, PlusCircle, User } as const;
 
 const items = [
 	{ label: "Feed", href: "/", icon: "Home" as const },
 	{ label: "Discover", href: "/discover", icon: "Search" as const },
 	{ label: "Log", href: "/log", icon: "PlusCircle" as const },
-	{ label: "Lists", href: "/lists", icon: "Bookmark" as const },
 	{ label: "Profile", href: "/profile", icon: "User" as const },
 ];
 

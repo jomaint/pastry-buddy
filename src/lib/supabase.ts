@@ -17,7 +17,6 @@ export { createClient as createServerClient } from "./supabase/server";
  */
 import type {
 	Badge,
-	Bakery,
 	CheckIn,
 	CheckInComment,
 	CheckInLike,
@@ -26,6 +25,7 @@ import type {
 	ListItem,
 	Notification,
 	Pastry,
+	Place,
 	Profile,
 	UserBadge,
 } from "@/types/database";
@@ -55,10 +55,10 @@ export type Database = {
 				};
 				Update: Partial<Omit<Profile, "id" | "created_at">>;
 			};
-			bakeries: {
-				Row: Bakery;
-				Insert: Omit<Bakery, "created_at"> & { created_at?: string };
-				Update: Partial<Omit<Bakery, "id" | "created_at">>;
+			places: {
+				Row: Place;
+				Insert: Omit<Place, "created_at"> & { created_at?: string };
+				Update: Partial<Omit<Place, "id" | "created_at">>;
 			};
 			pastries: {
 				Row: Pastry;
@@ -173,9 +173,9 @@ export type Database = {
 					pastry_category: string;
 					pastry_photo_url: string | null;
 					pastry_avg_rating: number | null;
-					bakery_name: string;
-					bakery_slug: string;
-					bakery_city: string | null;
+					place_name: string;
+					place_slug: string;
+					place_city: string | null;
 				};
 			};
 		};

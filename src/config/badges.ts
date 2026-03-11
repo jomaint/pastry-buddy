@@ -30,11 +30,11 @@ export const BADGES: BadgeDefinition[] = [
 		criteria: { type: "checkins", count: 100 },
 	},
 	{
-		name: "Bakery Hopper",
-		description: "Visit 5 different bakeries",
+		name: "Place Hopper",
+		description: "Visit 5 different places",
 		category: "explorer",
 		icon: "MapPin",
-		criteria: { type: "bakeries_visited", count: 5 },
+		criteria: { type: "places_visited", count: 5 },
 	},
 	{
 		name: "World Traveler",

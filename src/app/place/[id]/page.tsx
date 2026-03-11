@@ -1,8 +1,8 @@
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { InlineRating } from "@/components/ui/InlineRating";
-import { BakeryMap } from "@/components/ui/Map";
+import { PlaceMap } from "@/components/ui/Map";
 import { createClient } from "@/lib/supabase/server";
-import type { Bakery, Pastry } from "@/types/database";
+import type { Pastry, Place } from "@/types/database";
 import { Croissant, ExternalLink, MapPin, Store } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,15 +15,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { id } = await params;
 	const supabase = await createClient();
-	const { data: bakery } = await supabase
-		.from("bakeries")
+	const { data: place } = await supabase
+		.from("places")
 		.select("name, city, address")
 		.eq("id", id)
 		.single();
 
-	if (!bakery) return { title: "Bakery not found" };
+	if (!place) return { title: "Place not found" };
 
-	const b = bakery as { name: string; city: string | null; address: string | null };
+	const b = place as { name: string; city: string | null; address: string | null };
 	return {
 		title: b.name,
 		description: `${b.name} in ${b.city ?? "unknown"} — discover their pastries on Pastry Buddy`,
@@ -34,7 +34,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function BakeryDetailPage({
+export default async function PlaceDetailPage({
 	params,
 }: {
 	params: Promise<{ id: string }>;
@@ -42,35 +42,34 @@ export default async function BakeryDetailPage({
 	const { id } = await params;
 	const supabase = await createClient();
 
-	const { data: bakery, error: bErr } = await supabase
-		.from("bakeries")
+	const { data: place, error: bErr } = await supabase
+		.from("places")
 		.select("*")
 		.eq("id", id)
 		.single();
 
 	if (bErr) {
-		if (bErr.code === "PGRST116") return notFound(); // row not found
-		throw new Error(`Failed to load bakery: ${bErr.message}`);
+		if (bErr.code === "PGRST116") return notFound();
+		throw new Error(`Failed to load place: ${bErr.message}`);
 	}
-	if (!bakery) return notFound();
+	if (!place) return notFound();
 
 	const { data: pastries } = await supabase
 		.from("pastries")
 		.select("*")
-		.eq("bakery_id", id)
+		.eq("place_id", id)
 		.order("total_checkins", { ascending: false });
 
-	const typedBakery = bakery as Bakery;
+	const typedPlace = place as Place;
 	const typedPastries = (pastries ?? []) as Pastry[];
 
 	return (
 		<div className="mx-auto max-w-2xl lg:max-w-5xl">
 			<PageViewTracker
-				event="bakery_viewed"
-				properties={{ bakery_id: typedBakery.id, bakery_name: typedBakery.name }}
+				event="place_viewed"
+				properties={{ place_id: typedPlace.id, place_name: typedPlace.name }}
 			/>
 			<div className="lg:grid lg:grid-cols-[1fr_1.5fr] lg:gap-8 lg:p-6">
-				{/* Hero placeholder */}
 				<div className="relative aspect-[16/9] w-full bg-parchment lg:aspect-[4/3] lg:rounded-[16px] lg:overflow-hidden lg:sticky lg:top-24 lg:self-start">
 					<div className="absolute inset-0 flex items-center justify-center">
 						<Store size={48} className="text-sesame/40" />
@@ -79,21 +78,19 @@ export default async function BakeryDetailPage({
 				</div>
 
 				<div className="flex flex-col gap-6 px-4 pb-8 pt-6 lg:px-0 lg:pt-0">
-					{/* Name & address */}
 					<div>
-						<h1 className="font-display text-2xl text-espresso lg:text-3xl">{typedBakery.name}</h1>
+						<h1 className="font-display text-2xl text-espresso lg:text-3xl">{typedPlace.name}</h1>
 						<div className="mt-1.5 flex items-center gap-1.5 text-sm text-sesame">
 							<MapPin size={14} />
 							<span>
-								{typedBakery.address}, {typedBakery.city}
+								{typedPlace.address}, {typedPlace.city}
 							</span>
 						</div>
 					</div>
 
-					{/* Quick actions */}
 					<div className="flex gap-3">
 						<a
-							href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${typedBakery.name} ${typedBakery.address} ${typedBakery.city}`)}`}
+							href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${typedPlace.name} ${typedPlace.address} ${typedPlace.city}`)}`}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
@@ -103,7 +100,6 @@ export default async function BakeryDetailPage({
 						</a>
 					</div>
 
-					{/* Pastries logged here */}
 					<section className="flex flex-col gap-3">
 						<h2 className="font-display text-lg text-espresso">
 							Pastries logged here
@@ -133,14 +129,13 @@ export default async function BakeryDetailPage({
 						)}
 					</section>
 
-					{/* Map */}
 					<section className="flex flex-col gap-3">
 						<h2 className="font-display text-lg text-espresso">Location</h2>
-						{typedBakery.latitude && typedBakery.longitude ? (
-							<BakeryMap
-								lat={typedBakery.latitude}
-								lng={typedBakery.longitude}
-								name={typedBakery.name}
+						{typedPlace.latitude && typedPlace.longitude ? (
+							<PlaceMap
+								lat={typedPlace.latitude}
+								lng={typedPlace.longitude}
+								name={typedPlace.name}
 							/>
 						) : (
 							<div className="flex items-center justify-center rounded-[16px] bg-parchment/50 py-16">

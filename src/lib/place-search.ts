@@ -10,7 +10,7 @@ export interface PlaceResult {
 }
 
 /**
- * Search for bakeries/cafes via OpenStreetMap Nominatim API.
+ * Search for places/cafes via OpenStreetMap Nominatim API.
  * Free, no API key required. Rate limit: 1 req/sec.
  * https://nominatim.org/release-docs/develop/api/Search/
  */

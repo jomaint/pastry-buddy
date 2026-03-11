@@ -2,7 +2,7 @@ import type { BadgeDefinition } from "@/config/badges";
 
 interface BadgeContext {
 	totalCheckins: number;
-	bakeriesVisited: number;
+	placesVisited: number;
 	followers: number;
 	following: number;
 	listsCount: number;
@@ -31,12 +31,12 @@ export function evaluateBadges(badges: BadgeDefinition[], ctx: BadgeContext): Ba
 					progress: { current: Math.min(ctx.totalCheckins, target), target },
 				};
 			}
-			case "bakeries_visited": {
+			case "places_visited": {
 				const target = criteria.count as number;
 				return {
 					badge,
-					unlocked: ctx.bakeriesVisited >= target,
-					progress: { current: Math.min(ctx.bakeriesVisited, target), target },
+					unlocked: ctx.placesVisited >= target,
+					progress: { current: Math.min(ctx.placesVisited, target), target },
 				};
 			}
 			case "countries":

@@ -163,19 +163,19 @@ export function useUpdateProfile() {
 }
 
 /**
- * Get unique bakeries a user has visited (via check-ins).
+ * Get unique places a user has visited (via check-ins).
  */
-export function useBakeriesVisited(userId: string) {
+export function usePlacesVisited(userId: string) {
 	return useQuery<number>({
-		queryKey: ["bakeries-visited", userId],
+		queryKey: ["places-visited", userId],
 		enabled: !!userId,
 		queryFn: async () => {
 			const { data, error } = await supabase
 				.from("check_ins")
-				.select("bakery_id")
+				.select("place_id")
 				.eq("user_id", userId);
 			if (error) throw error;
-			const unique = new Set((data ?? []).map((d: { bakery_id: string }) => d.bakery_id));
+			const unique = new Set((data ?? []).map((d: { place_id: string }) => d.place_id));
 			return unique.size;
 		},
 	});

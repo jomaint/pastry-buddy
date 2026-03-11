@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuth } from "@/api/auth";
-import { useBakeries, useSearchBakeries } from "@/api/bakeries";
 import { useCreateCheckIn } from "@/api/check-ins";
 import { usePastries } from "@/api/pastries";
+import { usePlaces, useSearchPlaces } from "@/api/places";
 import { Confetti } from "@/components/ui/Confetti";
 import { useToast } from "@/components/ui/Toast";
 import { getContextualFlavors } from "@/config/contextual-flavors";
@@ -11,14 +11,16 @@ import { FLAVOR_TAGS, TEXTURE_TAGS } from "@/config/pastry-categories";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePageView } from "@/hooks/use-page-view";
 import { useTrackEvent } from "@/hooks/use-track-event";
+import { addGuestCheckIn, isGuestAtLimit } from "@/lib/guest-storage";
 import type { PlaceResult } from "@/lib/place-search";
 import { searchPlaces } from "@/lib/place-search";
-import type { Bakery, Pastry } from "@/types/database";
+import type { Pastry, Place } from "@/types/database";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import {
 	ArrowLeft,
 	Check,
+	ChevronDown,
 	ChevronRight,
 	Loader2,
 	MapPin,
@@ -28,19 +30,26 @@ import {
 	Star,
 	Store,
 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Step = "bakery" | "pastry" | "rate" | "done";
+type Step = "place" | "pastry" | "rate" | "done";
 
 export default function LogPage() {
-	const [step, setStep] = useState<Step>("bakery");
+	const [step, setStep] = useState<Step>("place");
 
-	// Bakery selection
-	const [bakeryQuery, setBakeryQuery] = useState("");
-	const [selectedBakery, setSelectedBakery] = useState<Bakery | null>(null);
+	// Place selection
+	const [placeQuery, setPlaceQuery] = useState("");
+	const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 	const [nominatimResults, setNominatimResults] = useState<PlaceResult[]>([]);
 	const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
-	const debouncedBakeryQuery = useDebounce(bakeryQuery, 400);
+	const debouncedPlaceQuery = useDebounce(placeQuery, 400);
+
+	// Guest limit state
+	const [guestAtLimit, setGuestAtLimit] = useState(false);
+	useEffect(() => {
+		setGuestAtLimit(isGuestAtLimit());
+	}, []);
 
 	// Pastry selection
 	const [pastryQuery, setPastryQuery] = useState("");
@@ -53,6 +62,7 @@ export default function LogPage() {
 	const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
 	const [selectedTextures, setSelectedTextures] = useState<string[]>([]);
 	const [notes, setNotes] = useState("");
+	const [showTags, setShowTags] = useState(false);
 
 	// Confetti and toast
 	const [showConfetti, setShowConfetti] = useState(false);
@@ -63,29 +73,29 @@ export default function LogPage() {
 	usePageView("/log");
 
 	// Supabase hooks
-	const { data: popularBakeries } = useBakeries();
-	const { data: searchedBakeries } = useSearchBakeries(bakeryQuery);
-	const { data: bakeryPastries } = usePastries(
-		selectedBakery ? { bakeryId: selectedBakery.id, sort: "checkins", limit: 20 } : undefined,
+	const { data: popularPlaces } = usePlaces();
+	const { data: searchedPlaces } = useSearchPlaces(placeQuery);
+	const { data: placePastries } = usePastries(
+		selectedPlace ? { placeId: selectedPlace.id, sort: "checkins", limit: 20 } : undefined,
 	);
 	const { data: allPastriesSearch } = usePastries(
 		pastryQuery.length >= 2 ? { sort: "checkins", limit: 50 } : undefined,
 	);
 	const createCheckIn = useCreateCheckIn();
 
-	// Local bakery search results from Supabase
-	const localBakeryResults = useMemo(() => {
-		if (bakeryQuery.length < 2) return [];
-		return (searchedBakeries ?? []).slice(0, 5);
-	}, [bakeryQuery, searchedBakeries]);
+	// Local place search results from Supabase
+	const localPlaceResults = useMemo(() => {
+		if (placeQuery.length < 2) return [];
+		return (searchedPlaces ?? []).slice(0, 5);
+	}, [placeQuery, searchedPlaces]);
 
 	// Nominatim search (debounced, only when local results are sparse)
 	useEffect(() => {
-		if (debouncedBakeryQuery.length < 3) {
+		if (debouncedPlaceQuery.length < 3) {
 			setNominatimResults([]);
 			return;
 		}
-		if (localBakeryResults.length >= 3) {
+		if (localPlaceResults.length >= 3) {
 			setNominatimResults([]);
 			return;
 		}
@@ -93,10 +103,10 @@ export default function LogPage() {
 		let cancelled = false;
 		setIsSearchingPlaces(true);
 
-		searchPlaces(debouncedBakeryQuery)
+		searchPlaces(debouncedPlaceQuery)
 			.then((results) => {
 				if (!cancelled) {
-					const localNames = new Set(localBakeryResults.map((b) => b.name.toLowerCase()));
+					const localNames = new Set(localPlaceResults.map((b) => b.name.toLowerCase()));
 					setNominatimResults(results.filter((r) => !localNames.has(r.name.toLowerCase())));
 					setIsSearchingPlaces(false);
 				}
@@ -110,44 +120,44 @@ export default function LogPage() {
 		return () => {
 			cancelled = true;
 		};
-	}, [debouncedBakeryQuery, localBakeryResults]);
+	}, [debouncedPlaceQuery, localPlaceResults]);
 
-	// Pastry search (filtered to selected bakery first, then all)
+	// Pastry search (filtered to selected place first, then all)
 	const pastryResults = useMemo(() => {
-		if (!selectedBakery) return [];
-		const bPastries = bakeryPastries ?? [];
+		if (!selectedPlace) return [];
+		const bPastries = placePastries ?? [];
 		if (pastryQuery.length < 2) return bPastries.slice(0, 8);
 		const q = pastryQuery.toLowerCase();
-		const fromBakery = bPastries.filter(
+		const fromPlace = bPastries.filter(
 			(p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q),
 		);
 		const fromAll = (allPastriesSearch ?? [])
 			.filter(
 				(p) =>
-					p.bakery_id !== selectedBakery.id &&
+					p.place_id !== selectedPlace.id &&
 					(p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)),
 			)
 			.slice(0, 5);
-		return [...fromBakery, ...fromAll];
-	}, [selectedBakery, pastryQuery, bakeryPastries, allPastriesSearch]);
+		return [...fromPlace, ...fromAll];
+	}, [selectedPlace, pastryQuery, placePastries, allPastriesSearch]);
 
-	// Get bakery name for pastry results
-	const getBakeryName = useCallback(
-		(bakeryId: string) => {
-			return popularBakeries?.find((b) => b.id === bakeryId)?.name ?? "";
+	// Get place name for pastry results
+	const getPlaceName = useCallback(
+		(placeId: string) => {
+			return popularPlaces?.find((b) => b.id === placeId)?.name ?? "";
 		},
-		[popularBakeries],
+		[popularPlaces],
 	);
 
-	const selectBakery = useCallback((bakery: Bakery) => {
-		setSelectedBakery(bakery);
-		setBakeryQuery("");
+	const selectPlace = useCallback((place: Place) => {
+		setSelectedPlace(place);
+		setPlaceQuery("");
 		setNominatimResults([]);
 		setStep("pastry");
 	}, []);
 
-	const selectNominatimPlace = useCallback((place: PlaceResult) => {
-		const newBakery: Bakery = {
+	const selectNominatimResult = useCallback((place: PlaceResult) => {
+		const newPlace: Place = {
 			id: place.id,
 			name: place.name,
 			slug: place.id,
@@ -161,8 +171,8 @@ export default function LogPage() {
 			created_by: "user",
 			created_at: new Date().toISOString(),
 		};
-		setSelectedBakery(newBakery);
-		setBakeryQuery("");
+		setSelectedPlace(newPlace);
+		setPlaceQuery("");
 		setNominatimResults([]);
 		setStep("pastry");
 	}, []);
@@ -174,17 +184,18 @@ export default function LogPage() {
 	}, []);
 
 	const selectCustomPastry = useCallback(() => {
-		if (!customPastryName.trim() || !selectedBakery) return;
+		if (!customPastryName.trim() || !selectedPlace) return;
 		const custom: Pastry = {
 			id: `custom-${Date.now()}`,
 			name: customPastryName.trim(),
 			slug: customPastryName.trim().toLowerCase().replace(/\s+/g, "-"),
-			bakery_id: selectedBakery.id,
+			place_id: selectedPlace.id,
 			category: "Pastries",
 			description: null,
 			photo_url: null,
 			avg_rating: 0,
 			total_checkins: 0,
+			featured: false,
 			created_by: "user",
 			created_at: new Date().toISOString(),
 		};
@@ -192,7 +203,7 @@ export default function LogPage() {
 		setCustomPastryName("");
 		setPastryQuery("");
 		setStep("rate");
-	}, [customPastryName, selectedBakery]);
+	}, [customPastryName, selectedPlace]);
 
 	const toggleFlavor = useCallback((tag: string) => {
 		setSelectedFlavors((prev) =>
@@ -207,12 +218,50 @@ export default function LogPage() {
 	}, []);
 
 	const handlePost = useCallback(() => {
-		if (!selectedBakery || !selectedPastry || rating === 0) return;
+		if (!selectedPlace || !selectedPastry || rating === 0) return;
+
+		const isAuthenticated = !!auth?.isAuthenticated;
+
+		if (!isAuthenticated) {
+			// Guest logging — store in localStorage
+			const result = addGuestCheckIn({
+				id: `guest-${Date.now()}`,
+				pastry_name: selectedPastry.name,
+				pastry_category: selectedPastry.category,
+				place_name: selectedPlace.name,
+				place_city: selectedPlace.city,
+				rating,
+				notes: notes || null,
+				flavor_tags: [...selectedFlavors, ...selectedTextures],
+				created_at: new Date().toISOString(),
+				pastry_id: selectedPastry.id,
+				place_id: selectedPlace.id,
+			});
+
+			if (!result.success) {
+				toast.show({
+					type: "error",
+					title: "Create an account to keep logging",
+					description: "Sign up to save your journal and get personalized recommendations",
+				});
+				return;
+			}
+
+			trackEvent("guest_check_in_created", {
+				properties: { rating },
+			});
+
+			setStep("done");
+			setShowConfetti(true);
+			setGuestAtLimit(result.atLimit);
+			setTimeout(() => setShowConfetti(false), 3000);
+			return;
+		}
 
 		createCheckIn.mutate(
 			{
 				pastry_id: selectedPastry.id,
-				bakery_id: selectedBakery.id,
+				place_id: selectedPlace.id,
 				rating,
 				notes: notes || undefined,
 				flavor_tags: [...selectedFlavors, ...selectedTextures],
@@ -222,7 +271,7 @@ export default function LogPage() {
 					trackEvent("check_in_created", {
 						properties: {
 							pastry_id: selectedPastry?.id,
-							bakery_id: selectedBakery?.id,
+							place_id: selectedPlace?.id,
 							rating,
 							flavor_tags: [...selectedFlavors, ...selectedTextures],
 						},
@@ -236,21 +285,21 @@ export default function LogPage() {
 					if (totalCheckins === 1) {
 						toast.show({
 							type: "badge",
-							title: "First Bite! 🧁",
+							title: "First Bite!",
 							description: "You earned your first badge",
 							icon: "🏆",
 						});
 					} else if (totalCheckins === 10) {
 						toast.show({
 							type: "badge",
-							title: "Regular! 🍰",
+							title: "Regular!",
 							description: "10 pastries logged — you're a regular now",
 							icon: "🏅",
 						});
 					} else if (totalCheckins === 50) {
 						toast.show({
 							type: "badge",
-							title: "Connoisseur! 🎂",
+							title: "Connoisseur!",
 							description: "50 pastries — true connoisseur status",
 							icon: "👑",
 						});
@@ -259,7 +308,7 @@ export default function LogPage() {
 					if (rating === 5) {
 						toast.show({
 							type: "success",
-							title: "A perfect 5! ⭐",
+							title: "A perfect 5!",
 							description: "This one must be incredible",
 						});
 					}
@@ -267,23 +316,23 @@ export default function LogPage() {
 			},
 		);
 	}, [
-		selectedBakery,
+		selectedPlace,
 		selectedPastry,
 		rating,
 		notes,
 		selectedFlavors,
 		selectedTextures,
 		createCheckIn,
-		auth?.user?.total_checkins,
+		auth,
 		toast,
 		trackEvent,
 	]);
 
 	const handleReset = useCallback(() => {
-		setStep("bakery");
-		setSelectedBakery(null);
+		setStep("place");
+		setSelectedPlace(null);
 		setSelectedPastry(null);
-		setBakeryQuery("");
+		setPlaceQuery("");
 		setPastryQuery("");
 		setCustomPastryName("");
 		setRating(0);
@@ -295,8 +344,8 @@ export default function LogPage() {
 
 	const goBack = useCallback(() => {
 		if (step === "pastry") {
-			setStep("bakery");
-			setSelectedBakery(null);
+			setStep("place");
+			setSelectedPlace(null);
 		} else if (step === "rate") {
 			setStep("pastry");
 			setSelectedPastry(null);
@@ -307,7 +356,7 @@ export default function LogPage() {
 		}
 	}, [step]);
 
-	const stepIndex = step === "bakery" ? 0 : step === "pastry" ? 1 : step === "rate" ? 2 : 3;
+	const stepIndex = step === "place" ? 0 : step === "pastry" ? 1 : step === "rate" ? 2 : 3;
 
 	return (
 		<div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6 lg:py-8">
@@ -316,7 +365,7 @@ export default function LogPage() {
 				<>
 					{/* Header */}
 					<div className="flex items-center gap-3">
-						{step !== "bakery" && (
+						{step !== "place" && (
 							<button
 								type="button"
 								onClick={goBack}
@@ -330,7 +379,7 @@ export default function LogPage() {
 
 					{/* Step indicator */}
 					<div className="flex items-center gap-2">
-						{["Bakery", "Pastry", "Rate"].map((label, i) => (
+						{["Place", "Pastry", "Rate"].map((label, i) => (
 							<div key={label} className="flex items-center gap-2">
 								<div className="flex items-center gap-1.5">
 									<div
@@ -368,9 +417,9 @@ export default function LogPage() {
 
 			{/* Step content */}
 			<AnimatePresence mode="wait">
-				{step === "bakery" && (
+				{step === "place" && (
 					<motion.div
-						key="bakery"
+						key="place"
 						initial={{ opacity: 0, y: 8 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -8 }}
@@ -387,9 +436,9 @@ export default function LogPage() {
 							/>
 							<input
 								type="text"
-								value={bakeryQuery}
-								onChange={(e) => setBakeryQuery(e.target.value)}
-								placeholder="Search bakeries & cafes..."
+								value={placeQuery}
+								onChange={(e) => setPlaceQuery(e.target.value)}
+								placeholder="Search places & cafes..."
 								// biome-ignore lint/a11y/noAutofocus: intentional UX for step-based flow
 								autoFocus
 								className="h-11 w-full rounded-[12px] border border-parchment bg-flour pl-10 pr-4 text-sm text-espresso placeholder:text-sesame transition-colors focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20"
@@ -405,27 +454,27 @@ export default function LogPage() {
 						{/* Results */}
 						<div className="flex flex-col gap-1">
 							{/* Local results */}
-							{localBakeryResults.length > 0 && (
+							{localPlaceResults.length > 0 && (
 								<div className="flex flex-col gap-0.5">
-									{bakeryQuery.length >= 2 && (
+									{placeQuery.length >= 2 && (
 										<p className="px-1 pb-1 text-[11px] font-medium uppercase tracking-wider text-sesame">
 											In Pastry Buddy
 										</p>
 									)}
-									{localBakeryResults.map((bakery) => (
+									{localPlaceResults.map((place) => (
 										<button
-											key={bakery.id}
+											key={place.id}
 											type="button"
-											onClick={() => selectBakery(bakery)}
+											onClick={() => selectPlace(place)}
 											className="flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors hover:bg-parchment/50"
 										>
 											<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brioche/10">
 												<Store size={16} className="text-brioche" />
 											</div>
 											<div className="min-w-0 flex-1">
-												<p className="text-sm font-medium text-espresso truncate">{bakery.name}</p>
+												<p className="text-sm font-medium text-espresso truncate">{place.name}</p>
 												<p className="text-xs text-sesame truncate">
-													{bakery.address} · {bakery.city}
+													{place.address} · {place.city}
 												</p>
 											</div>
 											<ChevronRight size={14} className="shrink-0 text-sesame" />
@@ -444,7 +493,7 @@ export default function LogPage() {
 										<button
 											key={place.id}
 											type="button"
-											onClick={() => selectNominatimPlace(place)}
+											onClick={() => selectNominatimResult(place)}
 											className="flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors hover:bg-parchment/50"
 										>
 											<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blueberry/10">
@@ -464,24 +513,24 @@ export default function LogPage() {
 							)}
 
 							{/* Empty state */}
-							{bakeryQuery.length < 2 && (
+							{placeQuery.length < 2 && (
 								<div className="flex flex-col gap-0.5">
 									<p className="px-1 pb-1 text-[11px] font-medium uppercase tracking-wider text-sesame">
-										Popular bakeries
+										Popular places
 									</p>
-									{(popularBakeries ?? []).slice(0, 5).map((bakery) => (
+									{(popularPlaces ?? []).slice(0, 5).map((place) => (
 										<button
-											key={bakery.id}
+											key={place.id}
 											type="button"
-											onClick={() => selectBakery(bakery)}
+											onClick={() => selectPlace(place)}
 											className="flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition-colors hover:bg-parchment/50"
 										>
 											<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brioche/10">
 												<Store size={16} className="text-brioche" />
 											</div>
 											<div className="min-w-0 flex-1">
-												<p className="text-sm font-medium text-espresso truncate">{bakery.name}</p>
-												<p className="text-xs text-sesame truncate">{bakery.city}</p>
+												<p className="text-sm font-medium text-espresso truncate">{place.name}</p>
+												<p className="text-xs text-sesame truncate">{place.city}</p>
 											</div>
 											<ChevronRight size={14} className="shrink-0 text-sesame" />
 										</button>
@@ -490,13 +539,13 @@ export default function LogPage() {
 							)}
 
 							{/* No results + searching */}
-							{bakeryQuery.length >= 2 &&
-								localBakeryResults.length === 0 &&
+							{placeQuery.length >= 2 &&
+								localPlaceResults.length === 0 &&
 								nominatimResults.length === 0 &&
 								!isSearchingPlaces && (
 									<div className="flex flex-col items-center gap-2 py-8 text-center">
 										<MapPin size={20} className="text-sesame" />
-										<p className="text-sm text-sesame">No places found for "{bakeryQuery}"</p>
+										<p className="text-sm text-sesame">No places found for "{placeQuery}"</p>
 										<p className="text-xs text-sesame">Try a different search or add it manually</p>
 									</div>
 								)}
@@ -504,7 +553,7 @@ export default function LogPage() {
 					</motion.div>
 				)}
 
-				{step === "pastry" && selectedBakery && (
+				{step === "pastry" && selectedPlace && (
 					<motion.div
 						key="pastry"
 						initial={{ opacity: 0, y: 8 }}
@@ -513,13 +562,13 @@ export default function LogPage() {
 						transition={{ duration: 0.2 }}
 						className="flex flex-col gap-4"
 					>
-						{/* Selected bakery chip */}
+						{/* Selected place chip */}
 						<div className="flex items-center gap-2 rounded-[12px] bg-parchment/50 px-3 py-2">
 							<Store size={14} className="shrink-0 text-brioche" />
 							<span className="text-sm font-medium text-espresso truncate">
-								{selectedBakery.name}
+								{selectedPlace.name}
 							</span>
-							<span className="text-xs text-sesame truncate">{selectedBakery.city}</span>
+							<span className="text-xs text-sesame truncate">{selectedPlace.city}</span>
 						</div>
 
 						<p className="text-sm text-ganache">What did you have?</p>
@@ -544,8 +593,8 @@ export default function LogPage() {
 						{/* Pastry results */}
 						<div className="flex flex-col gap-0.5">
 							{pastryResults.map((pastry) => {
-								const bakeryName = getBakeryName(pastry.bakery_id);
-								const isFromSelected = pastry.bakery_id === selectedBakery.id;
+								const placeName = getPlaceName(pastry.place_id);
+								const isFromSelected = pastry.place_id === selectedPlace.id;
 								return (
 									<button
 										key={pastry.id}
@@ -557,7 +606,7 @@ export default function LogPage() {
 											<p className="text-sm font-medium text-espresso truncate">{pastry.name}</p>
 											<p className="text-xs text-sesame truncate">
 												{pastry.category}
-												{!isFromSelected && bakeryName ? ` · ${bakeryName}` : ""}
+												{!isFromSelected && placeName ? ` · ${placeName}` : ""}
 											</p>
 										</div>
 										{(pastry.avg_rating ?? 0) > 0 && (
@@ -611,7 +660,7 @@ export default function LogPage() {
 					</motion.div>
 				)}
 
-				{step === "rate" && selectedBakery && selectedPastry && (
+				{step === "rate" && selectedPlace && selectedPastry && (
 					<motion.div
 						key="rate"
 						initial={{ opacity: 0, y: 8 }}
@@ -624,7 +673,7 @@ export default function LogPage() {
 						<div className="flex flex-col gap-1 rounded-[12px] bg-parchment/50 px-4 py-3">
 							<p className="text-base font-medium text-espresso">{selectedPastry.name}</p>
 							<p className="text-xs text-sesame">
-								{selectedBakery.name} · {selectedBakery.city}
+								{selectedPlace.name} · {selectedPlace.city}
 							</p>
 						</div>
 
@@ -677,53 +726,69 @@ export default function LogPage() {
 							)}
 						</div>
 
-						{/* Flavor tags */}
-						<div className="flex flex-col gap-2">
-							<p className="text-sm font-medium text-ganache">
-								Flavors <span className="font-normal text-sesame">(up to 5)</span>
-							</p>
-							<div className="flex flex-wrap gap-1.5">
-								{getContextualFlavors(FLAVOR_TAGS, selectedPastry?.category).map((tag) => (
-									<button
-										key={tag}
-										type="button"
-										onClick={() => toggleFlavor(tag)}
-										className={clsx(
-											"rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-											selectedFlavors.includes(tag)
-												? "bg-brioche text-flour"
-												: "bg-parchment/60 text-ganache hover:bg-parchment",
-										)}
-									>
-										{tag}
-									</button>
-								))}
-							</div>
-						</div>
+						{/* Flavor & texture tags (collapsible) */}
+						<button
+							type="button"
+							onClick={() => setShowTags(!showTags)}
+							className="flex items-center gap-1.5 text-sm text-sesame hover:text-ganache transition-colors"
+						>
+							<ChevronDown
+								size={14}
+								className={`transition-transform ${showTags ? "rotate-180" : ""}`}
+							/>
+							Add flavor & texture tags (optional)
+						</button>
+						{showTags && (
+							<>
+								{/* Flavor tags */}
+								<div className="flex flex-col gap-2">
+									<p className="text-sm font-medium text-ganache">
+										Flavors <span className="font-normal text-sesame">(up to 5)</span>
+									</p>
+									<div className="flex flex-wrap gap-1.5">
+										{getContextualFlavors(FLAVOR_TAGS, selectedPastry?.category).map((tag) => (
+											<button
+												key={tag}
+												type="button"
+												onClick={() => toggleFlavor(tag)}
+												className={clsx(
+													"rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+													selectedFlavors.includes(tag)
+														? "bg-brioche text-flour"
+														: "bg-parchment/60 text-ganache hover:bg-parchment",
+												)}
+											>
+												{tag}
+											</button>
+										))}
+									</div>
+								</div>
 
-						{/* Texture tags */}
-						<div className="flex flex-col gap-2">
-							<p className="text-sm font-medium text-ganache">
-								Texture <span className="font-normal text-sesame">(up to 3)</span>
-							</p>
-							<div className="flex flex-wrap gap-1.5">
-								{TEXTURE_TAGS.map((tag) => (
-									<button
-										key={tag}
-										type="button"
-										onClick={() => toggleTexture(tag)}
-										className={clsx(
-											"rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-											selectedTextures.includes(tag)
-												? "bg-brioche text-flour"
-												: "bg-parchment/60 text-ganache hover:bg-parchment",
-										)}
-									>
-										{tag}
-									</button>
-								))}
-							</div>
-						</div>
+								{/* Texture tags */}
+								<div className="flex flex-col gap-2">
+									<p className="text-sm font-medium text-ganache">
+										Texture <span className="font-normal text-sesame">(up to 3)</span>
+									</p>
+									<div className="flex flex-wrap gap-1.5">
+										{TEXTURE_TAGS.map((tag) => (
+											<button
+												key={tag}
+												type="button"
+												onClick={() => toggleTexture(tag)}
+												className={clsx(
+													"rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+													selectedTextures.includes(tag)
+														? "bg-brioche text-flour"
+														: "bg-parchment/60 text-ganache hover:bg-parchment",
+												)}
+											>
+												{tag}
+											</button>
+										))}
+									</div>
+								</div>
+							</>
+						)}
 
 						{/* Notes */}
 						<div className="flex flex-col gap-2">
@@ -765,7 +830,7 @@ export default function LogPage() {
 					</motion.div>
 				)}
 
-				{step === "done" && selectedBakery && selectedPastry && (
+				{step === "done" && selectedPlace && selectedPastry && (
 					<motion.div
 						key="done"
 						initial={{ opacity: 0, scale: 0.95 }}
@@ -785,7 +850,7 @@ export default function LogPage() {
 							<h2 className="font-display text-2xl text-espresso">Logged!</h2>
 							<p className="text-sm text-ganache">
 								<span className="font-medium">{selectedPastry.name}</span> at{" "}
-								<span className="font-medium">{selectedBakery.name}</span>
+								<span className="font-medium">{selectedPlace.name}</span>
 							</p>
 							<div className="flex items-center justify-center gap-0.5 pt-1">
 								{Array.from({ length: rating }).map((_, i) => (
@@ -807,14 +872,29 @@ export default function LogPage() {
 							)}
 							{notes && <p className="pt-2 text-sm text-sesame italic">"{notes}"</p>}
 						</div>
-						<button
-							type="button"
-							onClick={handleReset}
-							className="flex h-10 items-center gap-1.5 rounded-[14px] bg-parchment/60 px-5 text-sm font-medium text-ganache transition-colors hover:bg-parchment"
-						>
-							<Plus size={14} />
-							Log another
-						</button>
+						{/* Guest at limit — nudge to create account */}
+						{!auth?.isAuthenticated && guestAtLimit ? (
+							<div className="flex flex-col items-center gap-3">
+								<p className="text-sm text-ganache">
+									Create an account to keep your journal and unlock recommendations.
+								</p>
+								<Link
+									href="/sign-up"
+									className="flex h-10 items-center gap-1.5 rounded-[14px] bg-brioche px-5 text-sm font-medium text-flour transition-all hover:bg-brioche/90 active:scale-[0.98]"
+								>
+									Save my journal
+								</Link>
+							</div>
+						) : (
+							<button
+								type="button"
+								onClick={handleReset}
+								className="flex h-10 items-center gap-1.5 rounded-[14px] bg-parchment/60 px-5 text-sm font-medium text-ganache transition-colors hover:bg-parchment"
+							>
+								<Plus size={14} />
+								Log another
+							</button>
+						)}
 					</motion.div>
 				)}
 			</AnimatePresence>

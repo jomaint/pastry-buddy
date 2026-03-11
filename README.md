@@ -2,23 +2,23 @@
 
 **Discover, log, and rank your favorite pastries.**
 
-A social pastry discovery app -- think Untappd, but for pastries. Check in at bakeries, rate what you try, build your taste profile, and see what your friends are loving.
+A social pastry discovery app -- think Untappd, but for pastries. Check in at your favorite places, rate what you try, build your taste profile, and see what your friends are loving.
 
 ---
 
 ## About
 
-Pastry Buddy is a mobile-first web app that turns every bakery visit into a social experience. Users check in with ratings, flavor tags, and tasting notes, building a personal pastry journal that powers recommendations and leaderboards. Whether you're hunting for the best croissant in your city or tracking your sourdough streak, Pastry Buddy has you covered.
+Pastry Buddy is a mobile-first web app that turns every pastry shop visit into a social experience. Users check in with ratings, flavor tags, and tasting notes, building a personal pastry journal that powers recommendations and leaderboards. Whether you're hunting for the best croissant in your city or tracking your sourdough streak, Pastry Buddy has you covered.
 
 ## Features
 
 - **Check-in system** -- Rate pastries 1-5, add flavor tags, write tasting notes, and attach photos
 - **Personalized recommendations** -- Content-based and collaborative filtering powered by your taste profile
 - **Social feed** -- See what friends are eating, like and comment on check-ins, share discoveries
-- **Leaderboards** -- Weekly rankings by friends, global, top bakeries, and top pastries
+- **Leaderboards** -- Weekly rankings by friends, global, top places, and top pastries
 - **Gamification** -- Earn badges, maintain check-in streaks, level up, and progressively unlock features
 - **Taste profile** -- Visualize your flavor preferences and category tendencies
-- **Map integration** -- Browse bakeries on an interactive Leaflet map with geo-distance search
+- **Map integration** -- Browse places on an interactive Leaflet map with geo-distance search
 - **Curated lists** -- Create and share ranked pastry lists (Top 10 Croissants, Must-Try in LA, etc.)
 - **Onboarding flow** -- Guided setup to capture initial taste preferences
 - **PWA support** -- Installable on mobile with standalone display and offline-ready manifest
@@ -78,12 +78,12 @@ Run the SQL migration files in order against your Supabase database (via the SQL
 
 | # | File | Purpose |
 |---|---|---|
-| 1 | `001_initial_schema.sql` | Core tables (profiles, bakeries, pastries, check-ins, lists, badges, follows), RLS policies, triggers, feed view |
+| 1 | `001_initial_schema.sql` | Core tables (profiles, places, pastries, check-ins, lists, badges, follows), RLS policies, triggers, feed view |
 | 2 | `002_recommendations.sql` | Materialized views and functions for the recommendation engine |
 | 3 | `003_analytics.sql` | Analytics and usage tracking |
 | 4 | `004_social_features.sql` | Streaks, progressive unlocking, social engagement functions |
 | 5 | `005_onboarding.sql` | Onboarding flow support |
-| 6 | `006_leaderboards.sql` | Weekly leaderboard functions (friends, global, top bakeries, top pastries) |
+| 6 | `006_leaderboards.sql` | Weekly leaderboard functions (friends, global, top places, top pastries) |
 | 7 | `007_social_engagement.sql` | Likes, comments, and sharing |
 
 Migration files are located in `supabase/migrations/`.
@@ -103,7 +103,7 @@ src/
 ├── api/              # API route handlers and server-side logic
 ├── app/              # Next.js App Router pages and layouts
 │   ├── (auth)/       # Sign-in and sign-up pages
-│   ├── bakery/[id]/  # Bakery detail page
+│   ├── place/[id]/   # Place detail page
 │   ├── check-in/[id]/# Check-in flow
 │   ├── discover/     # Pastry discovery and recommendations
 │   ├── leaderboard/  # Weekly leaderboards
@@ -136,8 +136,8 @@ supabase/
 The Postgres schema is organized around these core tables:
 
 - **profiles** -- User accounts with XP, level, and taste preferences (extends Supabase Auth)
-- **bakeries** -- Bakery locations with geo-coordinates and Google Place IDs
-- **pastries** -- Individual pastry items linked to bakeries, with denormalized ratings
+- **places** -- Place locations with geo-coordinates and Google Place IDs
+- **pastries** -- Individual pastry items linked to places, with denormalized ratings
 - **check_ins** -- The heart of the app: user ratings, flavor tags, taste ratings, notes, and photos
 - **lists / list_items** -- User-curated ranked pastry lists
 - **badges / user_badges** -- Achievement system with JSON-defined unlock criteria

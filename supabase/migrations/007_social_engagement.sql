@@ -7,7 +7,7 @@
 -- ---------------------------------------------------------------------------
 create table if not exists public.check_in_likes (
   id         uuid primary key default gen_random_uuid(),
-  check_in_id uuid not null references public.check_ins(id) on delete cascade,
+  check_in_id text not null references public.check_ins(id) on delete cascade,
   user_id    uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
   unique (check_in_id, user_id)
@@ -31,7 +31,7 @@ create policy "Users can unlike their own likes"
 -- ---------------------------------------------------------------------------
 create table if not exists public.check_in_comments (
   id         uuid primary key default gen_random_uuid(),
-  check_in_id uuid not null references public.check_ins(id) on delete cascade,
+  check_in_id text not null references public.check_ins(id) on delete cascade,
   user_id    uuid not null references auth.users(id) on delete cascade,
   body       text not null check (length(trim(body)) between 1 and 500),
   created_at timestamptz not null default now()
@@ -58,7 +58,7 @@ create table if not exists public.notifications (
   user_id    uuid not null references auth.users(id) on delete cascade,
   actor_id   uuid references auth.users(id) on delete set null,
   type       text not null check (type in ('like', 'comment', 'follow', 'badge')),
-  reference_id uuid,  -- check_in_id, badge_id, etc.
+  reference_id text,  -- check_in_id, badge_id, etc.
   body       text,
   read       boolean not null default false,
   created_at timestamptz not null default now()
@@ -86,7 +86,7 @@ create policy "Users can mark their own notifications read"
 -- ---------------------------------------------------------------------------
 
 -- Get like count for a check-in
-create or replace function fn_check_in_like_count(p_check_in_id uuid)
+create or replace function fn_check_in_like_count(p_check_in_id text)
 returns integer
 language sql stable
 as $$
@@ -94,7 +94,7 @@ as $$
 $$;
 
 -- Check if a user liked a check-in
-create or replace function fn_user_liked_check_in(p_user_id uuid, p_check_in_id uuid)
+create or replace function fn_user_liked_check_in(p_user_id uuid, p_check_in_id text)
 returns boolean
 language sql stable
 as $$

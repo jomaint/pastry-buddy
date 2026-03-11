@@ -16,12 +16,17 @@ type EventName =
 	| "follow"
 	| "unfollow"
 	| "pastry_viewed"
-	| "bakery_viewed"
+	| "place_viewed"
 	| "profile_viewed"
 	| "recommendation_clicked"
 	| "like"
 	| "unlike"
-	| "share";
+	| "share"
+	| "discover_tab_changed"
+	| "guest_check_in_created"
+	| "bookmark_toggled"
+	| "profile_view_changed"
+	| "category_filtered";
 
 type TrackEventOptions = {
 	properties?: Record<string, unknown>;

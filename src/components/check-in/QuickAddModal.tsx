@@ -31,7 +31,7 @@ interface QuickAddModalProps {
 export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
 	const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
 	const [pastryName, setPastryName] = useState("");
-	const [bakeryName, setBakeryName] = useState("");
+	const [placeName, setPlaceName] = useState("");
 	const [rating, setRating] = useState(0);
 	const [notes, setNotes] = useState("");
 	const [showConfetti, setShowConfetti] = useState(false);
@@ -39,12 +39,12 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
 	const createCheckIn = useCreateCheckIn();
 	const toast = useToast();
 
-	const canSubmit = selectedEmoji && pastryName.trim() && bakeryName.trim() && rating > 0;
+	const canSubmit = selectedEmoji && pastryName.trim() && placeName.trim() && rating > 0;
 
 	const resetForm = useCallback(() => {
 		setSelectedEmoji(null);
 		setPastryName("");
-		setBakeryName("");
+		setPlaceName("");
 		setRating(0);
 		setNotes("");
 	}, []);
@@ -58,14 +58,14 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
 	const handleSubmit = useCallback(() => {
 		if (!canSubmit) return;
 
-		const bakeryId = `quick-${Date.now()}`;
+		const placeId = `quick-${Date.now()}`;
 		const pastryId = `quick-${Date.now()}-p`;
 		const fullNotes = [selectedEmoji, notes].filter(Boolean).join(" ");
 
 		createCheckIn.mutate(
 			{
 				pastry_id: pastryId,
-				bakery_id: bakeryId,
+				place_id: placeId,
 				rating,
 				notes: fullNotes || undefined,
 				flavor_tags: selectedEmoji ? [selectedEmoji] : [],
@@ -142,9 +142,9 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
 						/>
 					</div>
 
-					{/* Bakery name */}
+					{/* Place name */}
 					<div className="flex flex-col gap-1.5">
-						<label htmlFor="quick-bakery-name" className="text-sm font-medium text-espresso">
+						<label htmlFor="quick-place-name" className="text-sm font-medium text-espresso">
 							Where?
 						</label>
 						<div className="relative">
@@ -153,11 +153,11 @@ export function QuickAddModal({ open, onClose }: QuickAddModalProps) {
 								className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sesame"
 							/>
 							<input
-								id="quick-bakery-name"
+								id="quick-place-name"
 								type="text"
-								value={bakeryName}
-								onChange={(e) => setBakeryName(e.target.value)}
-								placeholder="Bakery name & location"
+								value={placeName}
+								onChange={(e) => setPlaceName(e.target.value)}
+								placeholder="Place name & location"
 								className="h-11 w-full rounded-input border border-parchment bg-flour pl-9 pr-3 text-sm text-espresso placeholder:text-sesame transition-colors duration-150 focus:border-brioche focus:outline-none focus:ring-2 focus:ring-brioche/20"
 							/>
 						</div>

@@ -14,21 +14,21 @@ export type RecommendedPastry = {
 	pastry_name: string;
 	pastry_slug: string;
 	pastry_category: string;
-	bakery_name: string;
-	bakery_city: string;
+	place_name: string;
+	place_city: string;
 	avg_rating: number | null;
 	total_checkins: number;
 	score: number;
 	reason: string;
 };
 
-export type RecommendedBakery = {
-	bakery_id: string;
-	bakery_name: string;
-	bakery_slug: string;
-	bakery_city: string;
+export type RecommendedPlace = {
+	place_id: string;
+	place_name: string;
+	place_slug: string;
+	place_city: string;
 	pastry_count: number;
-	avg_bakery_rating: number | null;
+	avg_place_rating: number | null;
 	score: number;
 	reason: string;
 };
@@ -108,24 +108,24 @@ export function useSimilarPastries(pastryId: string, limit = 6) {
 }
 
 /**
- * Recommended bakeries the user hasn't visited yet.
- * Based on category preferences and bakery quality.
+ * Recommended places the user hasn't visited yet.
+ * Based on category preferences and place quality.
  */
-export function useRecommendedBakeries(limit = 6) {
-	return useQuery<RecommendedBakery[]>({
-		queryKey: ["recommendations", "bakeries", limit],
+export function useRecommendedPlaces(limit = 6) {
+	return useQuery<RecommendedPlace[]>({
+		queryKey: ["recommendations", "places", limit],
 		queryFn: async () => {
 			const {
 				data: { user },
 			} = await supabase.auth.getUser();
 			if (!user) return [];
 
-			const { data, error } = await supabase.rpc("fn_recommend_bakeries", {
+			const { data, error } = await supabase.rpc("fn_recommend_places", {
 				p_user_id: user.id,
 				p_limit: limit,
 			});
 			if (error) throw error;
-			return (data ?? []) as RecommendedBakery[];
+			return (data ?? []) as RecommendedPlace[];
 		},
 		staleTime: 1000 * 60 * 5,
 	});

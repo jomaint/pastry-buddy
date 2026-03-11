@@ -5,12 +5,12 @@ import {
 	type LeaderboardScope,
 	type Timeframe,
 	useLeaderboard,
-	useTopBakeries,
 	useTopPastries,
+	useTopPlaces,
 	useUserRank,
 } from "@/api/leaderboards";
 import { Avatar } from "@/components/ui/Avatar";
-import { PageTransition } from "@/components/ui/PageTransition";
+import { PageTransition, ScrollReveal } from "@/components/ui/PageTransition";
 import { StatsSkeleton } from "@/components/ui/Skeleton";
 import { usePageView } from "@/hooks/use-page-view";
 import clsx from "clsx";
@@ -18,12 +18,12 @@ import { Crown, MapPin, Medal, Star, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-type Tab = "friends" | "global" | "bakeries" | "pastries";
+type Tab = "friends" | "global" | "places" | "pastries";
 
 const TABS: { key: Tab; label: string }[] = [
 	{ key: "friends", label: "Friends" },
 	{ key: "global", label: "Global" },
-	{ key: "bakeries", label: "Bakeries" },
+	{ key: "places", label: "Places" },
 	{ key: "pastries", label: "Pastries" },
 ];
 
@@ -71,8 +71,8 @@ export default function LeaderboardPage() {
 		scope,
 		showUserBoard ? 20 : 0,
 	);
-	const { data: topBakeries, isLoading: bakeriesLoading } = useTopBakeries(
-		tab === "bakeries" ? 10 : 0,
+	const { data: topPlaces, isLoading: placesLoading } = useTopPlaces(
+		tab === "places" ? 10 : 0,
 		timeframe,
 	);
 	const { data: topPastries, isLoading: pastriesLoading } = useTopPastries(
@@ -85,7 +85,7 @@ export default function LeaderboardPage() {
 
 	const isLoading =
 		(showUserBoard && boardLoading) ||
-		(tab === "bakeries" && bakeriesLoading) ||
+		(tab === "places" && placesLoading) ||
 		(tab === "pastries" && pastriesLoading);
 
 	return (
@@ -146,8 +146,8 @@ export default function LeaderboardPage() {
 				))}
 			</div>
 
-			{/* Timeframe toggle (for bakeries/pastries tabs) */}
-			{(tab === "bakeries" || tab === "pastries") && (
+			{/* Timeframe toggle (for places/pastries tabs) */}
+			{(tab === "places" || tab === "pastries") && (
 				<div className="flex items-center justify-center gap-2">
 					{TIMEFRAMES.map((tf) => (
 						<button
@@ -228,40 +228,41 @@ export default function LeaderboardPage() {
 				</div>
 			)}
 
-			{/* Top Bakeries */}
-			{tab === "bakeries" && !bakeriesLoading && (
+			{/* Top Places */}
+			{tab === "places" && !placesLoading && (
 				<div className="flex flex-col gap-2">
-					{!topBakeries || topBakeries.length === 0 ? (
+					{!topPlaces || topPlaces.length === 0 ? (
 						<div className="flex flex-col items-center gap-3 rounded-[16px] bg-parchment/40 py-16 text-center">
 							<MapPin size={24} className="text-sesame" />
-							<p className="text-sm text-sesame">No bakery data yet</p>
+							<p className="text-sm text-sesame">No place data yet</p>
 						</div>
 					) : (
-						topBakeries.map((bakery) => (
-							<Link
-								key={bakery.bakery_id}
-								href={`/bakery/${bakery.bakery_id}`}
-								className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
-							>
-								<RankBadge rank={bakery.rank} />
-								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-espresso truncate">{bakery.bakery_name}</p>
-									<p className="text-xs text-sesame truncate">
-										{bakery.bakery_city} · {bakery.unique_visitors} visitors
-									</p>
-								</div>
-								<div className="flex flex-col items-end gap-0.5">
-									<div className="flex items-center gap-1">
-										<Star size={11} className="fill-caramel text-caramel" />
-										<span className="text-xs font-medium text-espresso tabular-nums">
-											{bakery.avg_rating.toFixed(1)}
+						topPlaces.map((place) => (
+							<ScrollReveal key={place.place_id}>
+								<Link
+									href={`/place/${place.place_id}`}
+									className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+								>
+									<RankBadge rank={place.rank} />
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-espresso truncate">{place.place_name}</p>
+										<p className="text-xs text-sesame truncate">
+											{place.place_city} · {place.unique_visitors} visitors
+										</p>
+									</div>
+									<div className="flex flex-col items-end gap-0.5">
+										<div className="flex items-center gap-1">
+											<Star size={11} className="fill-caramel text-caramel" />
+											<span className="text-xs font-medium text-espresso tabular-nums">
+												{place.avg_rating.toFixed(1)}
+											</span>
+										</div>
+										<span className="text-[10px] text-sesame tabular-nums">
+											{place.checkin_count} check-ins
 										</span>
 									</div>
-									<span className="text-[10px] text-sesame tabular-nums">
-										{bakery.checkin_count} check-ins
-									</span>
-								</div>
-							</Link>
+								</Link>
+							</ScrollReveal>
 						))
 					)}
 				</div>
@@ -277,30 +278,33 @@ export default function LeaderboardPage() {
 						</div>
 					) : (
 						topPastries.map((pastry) => (
-							<Link
-								key={pastry.pastry_id}
-								href={`/pastry/${pastry.pastry_id}`}
-								className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
-							>
-								<RankBadge rank={pastry.rank} />
-								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-espresso truncate">{pastry.pastry_name}</p>
-									<p className="text-xs text-sesame truncate">
-										{pastry.bakery_name} · {pastry.pastry_category}
-									</p>
-								</div>
-								<div className="flex flex-col items-end gap-0.5">
-									<div className="flex items-center gap-1">
-										<Star size={11} className="fill-caramel text-caramel" />
-										<span className="text-xs font-medium text-espresso tabular-nums">
-											{pastry.avg_rating.toFixed(1)}
+							<ScrollReveal key={pastry.pastry_id}>
+								<Link
+									href={`/pastry/${pastry.pastry_id}`}
+									className="flex items-center gap-3 rounded-[16px] bg-flour p-4 shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-0.5"
+								>
+									<RankBadge rank={pastry.rank} />
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-espresso truncate">
+											{pastry.pastry_name}
+										</p>
+										<p className="text-xs text-sesame truncate">
+											{pastry.place_name} · {pastry.pastry_category}
+										</p>
+									</div>
+									<div className="flex flex-col items-end gap-0.5">
+										<div className="flex items-center gap-1">
+											<Star size={11} className="fill-caramel text-caramel" />
+											<span className="text-xs font-medium text-espresso tabular-nums">
+												{pastry.avg_rating.toFixed(1)}
+											</span>
+										</div>
+										<span className="text-[10px] text-sesame tabular-nums">
+											{pastry.checkin_count} check-ins
 										</span>
 									</div>
-									<span className="text-[10px] text-sesame tabular-nums">
-										{pastry.checkin_count} check-ins
-									</span>
-								</div>
-							</Link>
+								</Link>
+							</ScrollReveal>
 						))
 					)}
 				</div>

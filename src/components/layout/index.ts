@@ -1,3 +1,4 @@
 export { Shell } from "./Shell";
 export { TopNav } from "./TopNav";
-export { BottomNav } from "./BottomNav";
+export { Header } from "./Header";
+export { Drawer } from "./Drawer";

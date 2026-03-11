@@ -23,7 +23,7 @@ A pastry check-in and discovery app. Users log pastries they've tried, rate them
 src/
   app/              # Next.js App Router pages (check-in, discover, log, lists, profile, onboarding)
   api/              # Supabase query modules — React Query hooks + query functions
-                    #   auth, bakeries, check-ins, leaderboards, lists, onboarding,
+                    #   auth, places, check-ins, leaderboards, lists, onboarding,
                     #   pastries, profiles, recommendations, social
   components/
     layout/         # Header, Shell, Sidebar
@@ -73,13 +73,13 @@ npm run lint:fix   # Auto-fix with Biome
 ### Core Tables
 
 - `profiles` — Extends `auth.users`. Has username, level, xp, total_checkins.
-- `bakeries` — Name, address, lat/lng, Google Place ID.
-- `pastries` — Belongs to a bakery. Has category, avg_rating (denormalized), total_checkins.
-- `check_ins` — User rates a pastry at a bakery. Rating 1–5, notes, photo, flavor_tags, taste_ratings (JSONB).
+- `places` — Name, address, lat/lng, Google Place ID.
+- `pastries` — Belongs to a place. Has category, avg_rating (denormalized), total_checkins.
+- `check_ins` — User rates a pastry at a place. Rating 1–5, notes, photo, flavor_tags, taste_ratings (JSONB).
 - `lists` / `list_items` — User-curated pastry lists.
 - `badges` / `user_badges` — Achievement system.
 - `follows` — Social graph (follower/following).
-- `feed_view` — Materialized view joining check_ins + profiles + pastries + bakeries.
+- `feed_view` — Materialized view joining check_ins + profiles + pastries + places.
 
 ### RLS Pattern
 

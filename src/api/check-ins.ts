@@ -15,7 +15,7 @@ export type FeedItem = Database["public"]["Views"]["feed_view"]["Row"];
 
 type CreateCheckInInput = {
 	pastry_id: string;
-	bakery_id: string;
+	place_id: string;
 	rating: number;
 	notes?: string;
 	photo_url?: string;
@@ -146,7 +146,7 @@ export function useTasteProfile(userId?: string) {
  */
 export function useTopRatedPastries(userId?: string) {
 	return useQuery<
-		{ pastry_name: string; bakery_name: string; rating: number; pastry_slug: string }[]
+		{ pastry_name: string; place_name: string; rating: number; pastry_slug: string }[]
 	>({
 		queryKey: ["top-rated", userId],
 		enabled: !!userId,
@@ -161,7 +161,7 @@ export function useTopRatedPastries(userId?: string) {
 
 			return (data ?? []).map((row: Record<string, unknown>) => ({
 				pastry_name: row.pastry_name as string,
-				bakery_name: row.bakery_name as string,
+				place_name: row.place_name as string,
 				rating: row.rating as number,
 				pastry_slug: row.pastry_slug as string,
 			}));
@@ -224,6 +224,189 @@ export function useUserFlavorTags(userId?: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Item Card Queries (Journal / Profile)
+// ---------------------------------------------------------------------------
+
+/**
+ * An Item Card groups all check-ins for the same pastry+place by a user.
+ */
+export type ItemCard = {
+	pastry_id: string;
+	place_id: string;
+	pastry_name: string;
+	pastry_category: string;
+	pastry_slug: string;
+	place_name: string;
+	place_city: string | null;
+	latest_rating: number;
+	avg_rating: number;
+	visit_count: number;
+	first_visit: string;
+	last_visit: string;
+	all_notes: string[];
+	all_flavor_tags: string[];
+	check_in_ids: string[];
+};
+
+/**
+ * Fetch Item Cards for a user — groups check-ins by pastry+place.
+ * Optionally filter by category group.
+ */
+export function useItemCards(userId?: string, categoryFilter?: string) {
+	return useQuery<ItemCard[]>({
+		queryKey: ["item-cards", userId, categoryFilter],
+		enabled: !!userId,
+		queryFn: async () => {
+			let query = supabase
+				.from("feed_view")
+				.select("*")
+				.eq("user_id", userId as string)
+				.order("created_at", { ascending: false });
+
+			if (categoryFilter) {
+				query = query.eq("pastry_category", categoryFilter);
+			}
+
+			const { data, error } = await query;
+			if (error) throw error;
+
+			// Group by pastry_id + place_id
+			const groups = new Map<string, FeedItem[]>();
+			for (const row of (data ?? []) as FeedItem[]) {
+				const key = `${row.pastry_id}::${row.place_id}`;
+				const existing = groups.get(key) ?? [];
+				existing.push(row);
+				groups.set(key, existing);
+			}
+
+			return Array.from(groups.entries())
+				.map(([, items]) => {
+					const latest = items[0];
+					const ratings = items.map((i) => i.rating).filter((r): r is number => r != null);
+					const notes = items
+						.map((i) => i.notes)
+						.filter((n): n is string => n != null && n.length > 0);
+					const tags = [...new Set(items.flatMap((i) => (i.flavor_tags as string[] | null) ?? []))];
+
+					return {
+						pastry_id: latest.pastry_id as string,
+						place_id: latest.place_id as string,
+						pastry_name: (latest.pastry_name as string) ?? "",
+						pastry_category: (latest.pastry_category as string) ?? "",
+						pastry_slug: (latest.pastry_slug as string) ?? "",
+						place_name: (latest.place_name as string) ?? "",
+						place_city: (latest.place_city as string) ?? null,
+						latest_rating: (latest.rating as number) ?? 0,
+						avg_rating:
+							ratings.length > 0
+								? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+								: 0,
+						visit_count: items.length,
+						first_visit: items[items.length - 1].created_at as string,
+						last_visit: latest.created_at as string,
+						all_notes: notes,
+						all_flavor_tags: tags,
+						check_in_ids: items.map((i) => i.id as string),
+					};
+				})
+				.sort((a, b) => new Date(b.last_visit).getTime() - new Date(a.last_visit).getTime());
+		},
+		staleTime: 1000 * 60 * 2,
+	});
+}
+
+/**
+ * Fetch a user's check-ins for a specific pastry+place (for Item Card detail).
+ */
+export function useItemCheckIns(userId: string, pastryId: string, placeId: string) {
+	return useQuery<FeedItem[]>({
+		queryKey: ["item-checkins", userId, pastryId, placeId],
+		enabled: !!userId && !!pastryId && !!placeId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("feed_view")
+				.select("*")
+				.eq("user_id", userId)
+				.eq("pastry_id", pastryId)
+				.eq("place_id", placeId)
+				.order("created_at", { ascending: false });
+			if (error) throw error;
+			return data as FeedItem[];
+		},
+	});
+}
+
+/**
+ * Get auto-rankings: user's top items per category.
+ */
+export function useAutoRankings(userId?: string) {
+	return useQuery<Record<string, ItemCard[]>>({
+		queryKey: ["auto-rankings", userId],
+		enabled: !!userId,
+		queryFn: async () => {
+			const { data, error } = await supabase
+				.from("feed_view")
+				.select("*")
+				.eq("user_id", userId as string)
+				.order("created_at", { ascending: false });
+			if (error) throw error;
+
+			// Group by pastry_id + place_id, then rank by latest rating within each category
+			const groups = new Map<string, FeedItem[]>();
+			for (const row of (data ?? []) as FeedItem[]) {
+				const key = `${row.pastry_id}::${row.place_id}`;
+				const existing = groups.get(key) ?? [];
+				existing.push(row);
+				groups.set(key, existing);
+			}
+
+			const cards: ItemCard[] = Array.from(groups.entries()).map(([, items]) => {
+				const latest = items[0];
+				const ratings = items.map((i) => i.rating).filter((r): r is number => r != null);
+				return {
+					pastry_id: latest.pastry_id as string,
+					place_id: latest.place_id as string,
+					pastry_name: (latest.pastry_name as string) ?? "",
+					pastry_category: (latest.pastry_category as string) ?? "",
+					pastry_slug: (latest.pastry_slug as string) ?? "",
+					place_name: (latest.place_name as string) ?? "",
+					place_city: (latest.place_city as string) ?? null,
+					latest_rating: (latest.rating as number) ?? 0,
+					avg_rating:
+						ratings.length > 0
+							? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+							: 0,
+					visit_count: items.length,
+					first_visit: items[items.length - 1].created_at as string,
+					last_visit: latest.created_at as string,
+					all_notes: items
+						.map((i) => i.notes)
+						.filter((n): n is string => n != null && n.length > 0),
+					all_flavor_tags: [
+						...new Set(items.flatMap((i) => (i.flavor_tags as string[] | null) ?? [])),
+					],
+					check_in_ids: items.map((i) => i.id as string),
+				};
+			});
+
+			// Group by category and take top 5 per category
+			const rankings: Record<string, ItemCard[]> = {};
+			for (const card of cards) {
+				const cat = card.pastry_category || "Other";
+				if (!rankings[cat]) rankings[cat] = [];
+				rankings[cat].push(card);
+			}
+			for (const cat of Object.keys(rankings)) {
+				rankings[cat] = rankings[cat].sort((a, b) => b.latest_rating - a.latest_rating).slice(0, 5);
+			}
+
+			return rankings;
+		},
+		staleTime: 1000 * 60 * 5,
+	});
+}
+
+// ---------------------------------------------------------------------------
 // Mutations
 // ---------------------------------------------------------------------------
 
@@ -245,7 +428,7 @@ export function useCreateCheckIn() {
 				.insert({
 					user_id: user.id,
 					pastry_id: input.pastry_id,
-					bakery_id: input.bakery_id,
+					place_id: input.place_id,
 					rating: input.rating,
 					notes: input.notes ?? null,
 					photo_url: input.photo_url ?? null,
@@ -263,7 +446,7 @@ export function useCreateCheckIn() {
 			queryClient.invalidateQueries({ queryKey: ["pastries"] });
 			queryClient.invalidateQueries({ queryKey: ["profile"] });
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
-			queryClient.invalidateQueries({ queryKey: ["bakeries-visited"] });
+			queryClient.invalidateQueries({ queryKey: ["places-visited"] });
 			queryClient.invalidateQueries({ queryKey: ["recommendations"] });
 			queryClient.invalidateQueries({ queryKey: ["taste-profile"] });
 			queryClient.invalidateQueries({ queryKey: ["top-rated"] });

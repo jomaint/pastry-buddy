@@ -5,9 +5,10 @@ import { SimilarPastries } from "@/components/pastry/SimilarPastries";
 import { Badge } from "@/components/ui/Badge";
 import { Rating } from "@/components/ui/Rating";
 import { createClient } from "@/lib/supabase/server";
-import type { Bakery, Pastry } from "@/types/database";
+import type { Pastry, Place } from "@/types/database";
 import { Heart, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -62,14 +63,14 @@ export default async function PastryDetailPage({
 	}
 	if (!pastry) return notFound();
 
-	const { data: bakery } = await supabase
-		.from("bakeries")
+	const { data: place } = await supabase
+		.from("places")
 		.select("*")
-		.eq("id", (pastry as Pastry).bakery_id)
+		.eq("id", (pastry as Pastry).place_id)
 		.single();
 
 	const typedPastry = pastry as Pastry;
-	const typedBakery = bakery as Bakery | null;
+	const typedPlace = place as Place | null;
 
 	return (
 		<div className="mx-auto max-w-2xl lg:max-w-5xl">
@@ -78,24 +79,35 @@ export default async function PastryDetailPage({
 				properties={{ pastry_id: typedPastry.id, pastry_name: typedPastry.name }}
 			/>
 			<div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:p-6">
-				{/* Hero image placeholder */}
-				<div className="relative aspect-[4/5] w-full bg-parchment lg:aspect-square lg:rounded-[16px] lg:overflow-hidden lg:sticky lg:top-24 lg:self-start">
-					<div className="absolute inset-0 flex items-center justify-center">
-						<UtensilsCrossed size={48} className="text-sesame/40" />
-					</div>
+				{/* Hero image */}
+				<div className="relative aspect-[4/5] w-full overflow-hidden bg-parchment lg:aspect-square lg:rounded-[16px] lg:sticky lg:top-24 lg:self-start">
+					{typedPastry.photo_url ? (
+						<Image
+							src={typedPastry.photo_url}
+							alt={typedPastry.name}
+							fill
+							sizes="(max-width: 1024px) 100vw, 50vw"
+							className="object-cover"
+							priority
+						/>
+					) : (
+						<div className="absolute inset-0 flex items-center justify-center">
+							<UtensilsCrossed size={48} className="text-sesame/40" />
+						</div>
+					)}
 					<div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-espresso/40 to-transparent lg:hidden" />
 				</div>
 
 				<div className="flex flex-col gap-6 px-4 pb-8 pt-6 lg:px-0 lg:pt-0">
-					{/* Title + bakery */}
+					{/* Title + place */}
 					<div>
 						<h1 className="font-display text-2xl text-espresso lg:text-3xl">{typedPastry.name}</h1>
-						{typedBakery && (
+						{typedPlace && (
 							<Link
-								href={`/bakery/${typedBakery.id}`}
+								href={`/place/${typedPlace.id}`}
 								className="mt-1 inline-block text-sm text-brioche transition-colors hover:text-brioche/80"
 							>
-								{typedBakery.name} · {typedBakery.city}
+								{typedPlace.name} · {typedPlace.city}
 							</Link>
 						)}
 					</div>
@@ -124,7 +136,7 @@ export default async function PastryDetailPage({
 					{/* Actions */}
 					<div className="flex gap-3">
 						<Link
-							href={`/log?pastry=${typedPastry.id}&bakery=${typedPastry.bakery_id}`}
+							href={`/log?pastry=${typedPastry.id}&place=${typedPastry.place_id}`}
 							className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-brioche py-3 text-sm font-medium text-flour transition-colors hover:bg-brioche/90 active:bg-brioche/80"
 						>
 							<Heart size={16} />

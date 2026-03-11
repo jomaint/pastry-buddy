@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 
-export default function BakeryError({ reset }: { reset: () => void }) {
+export default function PlaceError({ reset }: { reset: () => void }) {
 	return (
 		<div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
-			<h1 className="font-display text-xl text-espresso">Could not load bakery</h1>
-			<p className="text-sm text-sesame">Something went wrong fetching this bakery.</p>
+			<h1 className="font-display text-xl text-espresso">Could not load place</h1>
+			<p className="text-sm text-sesame">Something went wrong fetching this place.</p>
 			<div className="flex gap-3">
 				<button
 					type="button"
@@ -19,7 +19,7 @@ export default function BakeryError({ reset }: { reset: () => void }) {
 					href="/discover"
 					className="rounded-[14px] bg-parchment px-5 py-2.5 text-sm font-medium text-espresso transition-colors hover:bg-parchment/80"
 				>
-					Browse bakeries
+					Browse places
 				</Link>
 			</div>
 		</div>

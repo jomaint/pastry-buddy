@@ -1,4 +1,4 @@
-export default function BakeryLoading() {
+export default function PlaceLoading() {
 	return (
 		<div className="mx-auto max-w-2xl">
 			<div className="aspect-[16/9] w-full animate-pulse bg-parchment" />

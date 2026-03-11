@@ -19,12 +19,12 @@ export type LeaderboardEntry = {
 	is_self: boolean;
 };
 
-export type TopBakeryEntry = {
+export type TopPlaceEntry = {
 	rank: number;
-	bakery_id: string;
-	bakery_name: string;
-	bakery_slug: string;
-	bakery_city: string | null;
+	place_id: string;
+	place_name: string;
+	place_slug: string;
+	place_city: string | null;
 	checkin_count: number;
 	unique_visitors: number;
 	avg_rating: number;
@@ -36,7 +36,7 @@ export type TopPastryEntry = {
 	pastry_name: string;
 	pastry_slug: string;
 	pastry_category: string;
-	bakery_name: string;
+	place_name: string;
 	checkin_count: number;
 	avg_rating: number;
 };
@@ -83,18 +83,18 @@ export function useLeaderboard(scope: LeaderboardScope = "friends", limit = 20) 
 }
 
 /**
- * Top bakeries by check-in volume within a timeframe.
+ * Top places by check-in volume within a timeframe.
  */
-export function useTopBakeries(limit = 10, timeframe: Timeframe = "week") {
-	return useQuery<TopBakeryEntry[]>({
-		queryKey: ["leaderboard", "bakeries", timeframe, limit],
+export function useTopPlaces(limit = 10, timeframe: Timeframe = "week") {
+	return useQuery<TopPlaceEntry[]>({
+		queryKey: ["leaderboard", "places", timeframe, limit],
 		queryFn: async () => {
-			const { data, error } = await supabase.rpc("fn_top_bakeries", {
+			const { data, error } = await supabase.rpc("fn_top_places", {
 				p_limit: limit,
 				p_timeframe: timeframe,
 			});
 			if (error) throw error;
-			return (data ?? []) as TopBakeryEntry[];
+			return (data ?? []) as TopPlaceEntry[];
 		},
 		staleTime: 1000 * 60 * 5,
 	});

@@ -8,13 +8,14 @@ export interface Profile {
 	level: number;
 	xp: number;
 	total_checkins: number;
+	role: "user" | "staff" | "admin";
 	onboarding_completed: boolean;
 	onboarding_step: string;
 	created_at: string;
 	updated_at: string;
 }
 
-export interface Bakery {
+export interface Place {
 	id: string;
 	name: string;
 	slug: string;
@@ -34,11 +35,12 @@ export interface Pastry {
 	name: string;
 	slug: string;
 	category: string;
-	bakery_id: string;
+	place_id: string;
 	description: string | null;
 	photo_url: string | null;
 	avg_rating: number | null;
 	total_checkins: number;
+	featured: boolean;
 	created_by: string;
 	created_at: string;
 }
@@ -47,7 +49,7 @@ export interface CheckIn {
 	id: string;
 	user_id: string;
 	pastry_id: string;
-	bakery_id: string;
+	place_id: string;
 	rating: number;
 	notes: string | null;
 	photo_url: string | null;
@@ -97,6 +99,31 @@ export interface Follow {
 	follower_id: string;
 	following_id: string;
 	created_at: string;
+}
+
+export interface Bookmark {
+	id: string;
+	user_id: string;
+	pastry_id: string;
+	place_id: string;
+	created_at: string;
+}
+
+export type VerdictLabel =
+	| "go_to"
+	| "overrated"
+	| "worth_the_detour"
+	| "one_and_done"
+	| "hidden_gem";
+
+export interface UserItemVerdict {
+	id: string;
+	user_id: string;
+	pastry_id: string;
+	place_id: string;
+	verdict: VerdictLabel;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface CheckInLike {

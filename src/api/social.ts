@@ -360,7 +360,7 @@ export type FriendSuggestion = {
 };
 
 /**
- * Get friend suggestions based on shared bakeries and mutual follows.
+ * Get friend suggestions based on shared places and mutual follows.
  */
 export function useFriendSuggestions(limit = 5) {
 	return useQuery<FriendSuggestion[]>({

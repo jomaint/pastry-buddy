@@ -5,7 +5,16 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-	return <div className={clsx("animate-pulse rounded-[12px] bg-parchment/60", className)} />;
+	return (
+		<div
+			className={clsx(
+				"relative overflow-hidden rounded-[12px] bg-parchment/60",
+				"before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite]",
+				"before:bg-gradient-to-r before:from-transparent before:via-flour/60 before:to-transparent",
+				className,
+			)}
+		/>
+	);
 }
 
 export function FeedCardSkeleton() {
